@@ -4,7 +4,7 @@ Created on Fri Sep  1 10:31:27 2023
 
 @author: dsimon
 """
-from opcua import Server,Client
+from opcua import Server
 from opcua import ua
 import time
 from threading import Thread,Event
@@ -72,11 +72,12 @@ class Adaptronic(base_server):
         self.server_thread.start()
         return     
     def simulate(self,SFC,MatNumber,NC_CODE):
+        self.parameter_list[0].set_value(SFC)
         self.wait_for_PcO()
         try:
             if(self.PcOResponse==ua.Variant(1, ua.VariantType.Int32)):
                 
-                self.parameter_list[0].set_value(SFC)
+                
                 self.parameter_list[5].set_value(MatNumber)
                 if(NC_CODE=='N/A'):
                     self.parameter_list[1].set_value('OK')
@@ -86,7 +87,7 @@ class Adaptronic(base_server):
                     self.parameter_list[1].set_value('NOK')
                 
             if(self.PcOResponse==ua.Variant(6, ua.VariantType.Int32)):
-                pass    
+                self.clear_parameters()    
             else:
                 raise Exception(f"Invalid PcO response,should have value in [1,6,10] got ({self.PcOResponse})")                 
             self.PcOResponse=None     

@@ -1,70 +1,64 @@
-from flask import Flask,render_template,jsonify,request,url_for
+from flask import Flask,render_template,request,jsonify,url_for
 from server_builders import Adaptronic
+from flask_socketio import SocketIO
+from flask_cors import CORS
+import json
+import logging
 #<==== Server Builders =====>
 server_objects=list()
 
 app= Flask(__name__)
+CORS(app, resources={r'/*': {'origins': '*'}}) 
+socket = SocketIO(app, cors_allowed_origins="*")  
+logging.basicConfig(level=logging.INFO, handlers=[logging.StreamHandler()])
+app.logger.addHandler(logging.StreamHandler())
 
 @app.route('/')
 def index():
     return render_template('index.html',js_file_url=url_for('static',filename='client.js'))
-@app.route('/New_Instance',methods=['POST','OPTIONS'])
-def createInstance():
-    global server_objects
-    if request.method=='POST':
-        try:     
-            new_server=Adaptronic()    
-            server_objects.append(new_server)
-            return jsonify({'response':'OK','server_url':"localhost:6000",'error_message':'nO error message my nigga','server_number':1})
-        except Exception as e: 
-            return jsonify({'response':'NOK','server_url':None,'error_message':'Here'+str(e),'server_number':None})
-    else: return jsonify({'response':'METHOD NOT ALLOWED!'})  
+
     
-
-
-@app.route('/Delete_Instance', methods=['POST', 'OPTIONS'])
-def deleteInstance():
-    global current_threads
-    global thread_counter
-    global thread_events
+@socket.on('connect')
+def socket_connect():
+    app.logger.info('Client connected!')
+    socket.emit('message',json.dumps({'flag':'RefreshInterface','info':[server.url for server in server_objects]}))
+@socket.on('message')
+def handle_request(data):
     global server_objects
-    if request.method == 'POST':
+    app.logger.info('Received an message')
+    message=json.loads(data)
+    flag=message['flag']
+    if flag=='DeleteInstance':
         try:
-            data = request.json
-            to_delete = data['to_delete']  
-            
-            if 0 <= to_delete < len(current_threads):
-               
-                thread_events[to_delete].set()
-                current_threads[to_delete].join()
-                current_threads.pop(to_delete)
-                server_objects[to_delete].join()
-                server_objects.pop(to_delete)
-                thread_events.pop(to_delete)
-                thread_counter -= 1
-                
-                return jsonify({'response': 'OK', 'message': 'Thread deleted successfully'})
-            else:
-                return jsonify({'response': 'NOK', 'message': 'Invalid thread index'})
-
+            index=int(message['index'])
+            server=server_objects.pop(index)
+            server.stop_event.set()
+            del server
+            socket.emit('message',json.dumps({'flag':'DeleteInstanceOK','info':'None','index':index}))
         except Exception as e:
-            return jsonify({'response': 'NOK', 'message': str(e)})
-    else:
-        return jsonify({'response': 'METHOD NOT ALLOWED!'})
+            socket.emit('message',json.dumps({'flag':'DeleteInstanceNOK','info':str(e)}))
 
-
-@app.route('/Run_Instance',methods=['POST','OPTIONS'])
-def runInstance():
-    global server_objects
-    if request.method=='POST':
+    if flag=='NewInstance':
         try:
-            data=request.json
-            to_update=data['to_update']
-            message=server_objects[to_update].simulate(data['SFC'],data['Material_Number'],data['NC_CODE'])
-            return message
-        except Exception as e: 
-            
-            return jsonify({'response':'NOK','server_url':None,'error_message':str(e)+f', when trying to acces index {to_update}, lenght is {len(server_objects)}','server_number':None})
-    else: return jsonify({'response':'METHOD NOT ALLOWED!'})
-        
-app.run(debug=True)
+            assert(message['type'] in ['Adaptronic'])
+            if(message['type']=='Adaptronic'):new_server=Adaptronic()
+            server_objects.append(new_server)
+            socket.emit('message',json.dumps({'flag':'NewInstanceOK','info':str(new_server.url)}))
+        except Exception as e:            
+            socket.emit('message',json.dumps({'flag':'NewInstanceNOK','info':str(e)}))
+
+    if flag=='RunInstance':
+        try:
+            index=int(message['index'])
+            print(index)
+            assert(message['type'] in ['Adaptronic'])
+            if(message['type']=='Adaptronic'):
+                result=server_objects[index].simulate(message['SFC'],message['MatNumber'],message['NC_CODE'])
+                result='tmp'
+                socket.emit('message',json.dumps({'flag':'RunInstanceOK','info':str(result)}))
+        except Exception as e:
+                        
+            socket.emit('message',json.dumps({'flag':'RunInstanceNOK','info':str(e)}))
+
+
+socket.run(app,debug=True)

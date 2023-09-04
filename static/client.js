@@ -1,45 +1,126 @@
-function log_info(to_log,color_code=0){
-    const currentDate=new Date()
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth() 
-    const day = currentDate.getDate();
-    const hours = currentDate.getHours();
-    const minutes = currentDate.getMinutes();
-    const seconds = currentDate.getSeconds();
-    new_log=document.createElement('h4');
-    new_log.textContent=`${year}.${month}.${day}-`+`${hours}:${minutes}:${seconds}  `+to_log;
-    if(color_code==1)new_log.style.color='green';
-    if(color_code==2)new_log.style.color='red';
-    console=document.getElementById("log_console");
-    console.appendChild(new_log);
-  }
-  
-  log_info("Started Application!")
-  
-  
-  //Code to block selecting OK MII STATUS when simulated NC_CODE contradicts it
-  const ncCodeSelect = document.getElementById('content_create_input2');
-  const miiStatusSelect = document.getElementById('content_create_input3');
-  
-  ncCodeSelect.addEventListener('change', () => {
-    const selectedValue = ncCodeSelect.value;
+
+
+  var socket = io.connect('http://127.0.0.1:5000/');
+
+  socket.on('connect', function() {
+    log_info('Connected to server',1);
+  });
+  socket.on('message',function(response_data){
+    log_info('Response recieved from backend..');
+    const response=JSON.parse(response_data);
+    flag=response.flag;
     
-    if (selectedValue === '5' || selectedValue === '6' || selectedValue === '7') {
-      miiStatusSelect.value = 'NOK';
-      for (const option of miiStatusSelect.options) {
-        if (option.value === 'OK') {
-          option.disabled = true;
-        } else {
-          option.disabled = false;
+    switch(flag){
+      case 'RefreshInterface':
+        
+        const element_list=document.getElementById('simulation_instance_container').querySelectorAll('.simulation_instance')
+        if(element_list.length!=response.info.length){
+            document.getElementById('simulation_instance_container').innerHTML='';
+            response.info.forEach(function(url){
+              createInstanceDiv(url);
+            });
+        }
+        
+        
+        break;
+
+      case 'NewInstanceOK':
+        createInstanceDiv(response.info);
+        document.getElementById('simulation_new_instance').disabled=false;
+        break;
+      case 'NewInstanceNOK':
+        log_info(`Failed creating new instance: ${response.info}`,2);
+        break;
+      case 'DeleteInstanceOK':
+        index=parseInt(response.index);
+        try{
+          const parent=document.getElementById('simulation_instance_container')
+          const element_list=parent.querySelectorAll('.simulation_instance')
+          log_info(index)
+          element_list[index].remove()
+        
+          log_info(`Succesfully removed instance of index ${index}`,1)
+        }catch(error){
+          log_info(`Unexpected error when deleting div: ${error}`,2)
+        }
+        break;
+      case 'DeleteInstanceNOK':
+        log_info(`Failed deleting instance ${response.info}`,2)
+        break;
+      case 'RunInstanceOK':
+        log_info('Successfully ran SFC!',1)
+        break;
+      case 'RunInstanceNOK':
+        log_info(`Failed running SFC: ${response.info}`);
+        break;
+
+      default:
+        log_info('Unknown response flag is :');
+        log_info(response.flag);
+        break;
+    }
+   
+                    
+  });
+  function emitSocketFlag(flag,button=NaN){
+        
+        if(flag=='NewInstance'){
+          log_info('Started creating new instance....');
+          socket.emit('message',JSON.stringify({'flag':'NewInstance','type':'Adaptronic'}));
+          document.getElementById('simulation_new_instance').disabled=true;
+          log_info('Sent request to backend....');
+        }
+        if(flag=='DeleteInstance'){
+
+          const userConfirmed = confirm("Are you sure you want to delete this instance?");
+          if(userConfirmed){
+            const parentDiv = button.parentNode;
+          
+         
+            const containerDiv = document.getElementById("simulation_instance_container");
+            const divIndex = Array.from(containerDiv.children).indexOf(parentDiv);
+
+
+            socket.emit('message',JSON.stringify({'flag':'DeleteInstance','index':divIndex}));
+          }
+        }
+        if(flag=='RunInstance'){
+          log_info('Started request to run data....')
+           
+          try{
+          const parentDiv = button.parentNode;
+          const selectField = parentDiv.querySelector('.simulation_instance_select');
+          const selectedValue = selectField.value;
+          
+          const contentTable = document.getElementById('content_table');
+          const rows = contentTable.getElementsByTagName('tr');
+          const containerDiv = document.getElementById("simulation_instance_container");
+          const divIndex = Array.from(containerDiv.children).indexOf(parentDiv);
+    
+          for (let i = 1; i < rows.length; i++) { 
+            const row = rows[i];
+            const cells = row.getElementsByTagName('td');
+            
+            if (cells[0].textContent === selectedValue) {
+              const SFC = cells[1].textContent;
+              const NC_CODE = cells[2].textContent;
+              const MII_STATUS = cells[3].textContent;
+              const Material_Number = cells[4].textContent;
+              
+              log_info(`Sending SFC ${SFC} to server....`)
+              socket.emit('message',JSON.stringify({'flag':'RunInstance','index':divIndex,'type':'Adaptronic','SFC':SFC,'NC_CODE':NC_CODE,'MatNumber':Material_Number}))
+            }
+          }
+        }
+      catch(error){
+          log_info(`Unexpected error when running sfc: ${error}`,2); 
+         
         }
       }
-    } else {
-      for (const option of miiStatusSelect.options) {
-        option.disabled = false;
-      }
-    }
-  });
-  
+        
+  }
+  document.getElementById("simulation_new_instance").addEventListener("click",()=>{emitSocketFlag('NewInstance');});
+
   
   //Add entry to table 
   let id=0;
@@ -72,105 +153,7 @@ function log_info(to_log,color_code=0){
     });
   });
   //Delete instance from server
-  function confirmAndDelete(button) {
-  
-      const userConfirmed = confirm("Are you sure you want to delete this instance?");
-      
-      if (userConfirmed) {
-         
-          const parentDiv = button.parentNode;
-          
-         
-          const containerDiv = document.getElementById("simulation_instance_container");
-          const divIndex = Array.from(containerDiv.children).indexOf(parentDiv);
-          
-         
-          fetch("http://localhost:5000/Delete_Instance", {
-              method: 'POST',
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ "to_delete": divIndex })
-          })
-          .then(response => response.json())
-          .then(data => {
-              if (data['response'] === 'OK') {
-                  
-                  parentDiv.remove();
-                  log_info("Removed Instance with success",1)
-              } else {
-                log_info("Deletion failed, message:" + data['message'],2);
-              }
-          })
-          .catch(error => {
-              log_info("Unknown error during deletion:" + error.message,2);
-          });
-      }
-  }
   //Run data to opcua server for simulation
-  function runData(button) {
-  
-        log_info('Started request to run data....')
-           
-        try{
-        const parentDiv = button.parentNode;
-        const selectField = parentDiv.querySelector('.simulation_instance_select');
-        const selectedValue = selectField.value;
-        
-        const contentTable = document.getElementById('content_table');
-        const rows = contentTable.getElementsByTagName('tr');
-        const containerDiv = document.getElementById("simulation_instance_container");
-        const divIndex = Array.from(containerDiv.children).indexOf(parentDiv);
-  
-        for (let i = 1; i < rows.length; i++) { 
-          const row = rows[i];
-          const cells = row.getElementsByTagName('td');
-          
-          if (cells[0].textContent === selectedValue) {
-            const SFC = cells[1].textContent;
-            const NC_CODE = cells[2].textContent;
-            const MII_STATUS = cells[3].textContent;
-            const Material_Number = cells[4].textContent;
-            
-            log_info(`Sending SFC ${SFC} to server....`)
-            fetch('http://localhost:5000/Run_Instance', {
-              method: 'POST', 
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                'SFC': SFC,
-                'NC_CODE': NC_CODE,
-                'MII_STATUS': MII_STATUS,
-                'Material_Number': Material_Number,
-                'to_update':divIndex
-              })
-            })
-            .then(response => response.json())
-            .then(data => {
-              
-               if(data['response']=='OK'){
-                log_info(data['message'],1);
-                
-               }
-               else{
-               
-                log_info(data['error_message'],2);
-               }
-  
-            })
-            .catch(error => {
-                log_info(error,2);
-                
-            });
-            
-            break; 
-          }
-          
-        }
-      }catch(error){
-        log_info(`Unknown error when running sfc: ${error}`,2); 
-       
-      }
-  }
   
   //Random button code
   document.addEventListener("DOMContentLoaded", function () {
@@ -194,83 +177,11 @@ function log_info(to_log,color_code=0){
       miiStatusSelect.selectedIndex = randomStatusIndex;
     });
   });
-  //Instance creation logic
-  document.addEventListener("DOMContentLoaded",function(){
-    const CreateInstance=document.getElementById("simulation_new_instance");
-    CreateInstance.addEventListener("click",function(){
-          log_info("Started new instance creation....");
-          fetch("http://localhost:5000/New_Instance",
-                {method:'POST',headers: {"Content-Type":"application/json"},body:JSON.stringify({'request':'CreateNewInstance'})}       
-          ).then(response=>response.json()).then(response=>{
-                      if(response['response']=='OK'){
-                          
-                          const containerDiv = document.getElementById("simulation_instance_container");
-                          
-  
-                          const newDiv = document.createElement("div");
-                          newDiv.classList.add("simulation_instance"); 
+
   
   
-                          const label = document.createElement("label");
-                          label.textContent = "SFC:";
-  
-                          const select = document.createElement("select");
-                          select.classList.add("simulation_instance_select");
-                          select.id = "simulation_instance_select";
-                          const tableElement = document.getElementById("content_table");
   
   
-                           for (const row of tableElement.rows) {
-  
-                           const id = row.cells[0].textContent;
-                           if(id=='ID')continue;
-  
-                           const option = document.createElement("option");
-                           option.value = id;
-                           option.textContent = id;
-                           select.appendChild(option);
-                          }
-  
-                          const buttonRun = document.createElement("button");
-                          buttonRun.classList.add("simulation_instance_run");
-                          buttonRun.id = "simulation_instance_run";
-                          buttonRun.textContent = "Run";
-                          buttonRun.addEventListener("click", function() {
-                                 runData(this); 
-                           })
-                          const info = document.createElement("h5");
-                          info.classList.add("simulation_instance_info");
-                          info.textContent = "SERVER RUNNING AT: "+response['server_url'];
-  
-                          const buttonDelete = document.createElement("button");
-                          buttonDelete.classList.add("simulation_instance_delete");
-                          buttonDelete.id = "simulation_instance_delete";
-                          buttonDelete.textContent = "Delete";
-                          buttonDelete.addEventListener("click", function() {
-                                 confirmAndDelete(this); 
-                           });
-  
-  
-                          newDiv.appendChild(label);
-                          newDiv.appendChild(select);
-                          newDiv.appendChild(buttonRun);
-                          newDiv.appendChild(info);
-                          newDiv.appendChild(buttonDelete);
-  
-  
-                          containerDiv.appendChild(newDiv);
-                          log_info("Created instance!",1);
-                          }else{
-                            log_info(`Failed creating new instance, response from server: ${response['response']} error : ${response['error_message']}`,2);
-  
-                          }
-                }).catch(error => {
-                  log_info(`Unknown error in instance creation request: ${error}`,2);
-  
-                })
-                
-              });
-  })
   //Observer
   function updateSelectElements() {
     return document.querySelectorAll(".simulation_instance_select");
@@ -280,7 +191,79 @@ function log_info(to_log,color_code=0){
   let selectElements = updateSelectElements();
   const tableElement = document.getElementById("content_table");
   
+  function createInstanceDiv(url='Unknown'){
+    const containerDiv = document.getElementById("simulation_instance_container");
+                          
   
+    const newDiv = document.createElement("div");
+    newDiv.classList.add("simulation_instance"); 
+
+
+    const label = document.createElement("label");
+    label.textContent = "SFC:";
+
+    const select = document.createElement("select");
+    select.classList.add("simulation_instance_select");
+    select.id = "simulation_instance_select";
+    const tableElement = document.getElementById("content_table");
+
+
+     for (const row of tableElement.rows) {
+
+     const id = row.cells[0].textContent;
+     if(id=='ID')continue;
+
+     const option = document.createElement("option");
+     option.value = id;
+     option.textContent = id;
+     select.appendChild(option);
+    }
+
+    const buttonRun = document.createElement("button");
+    buttonRun.classList.add("simulation_instance_run");
+    buttonRun.id = "simulation_instance_run";
+    buttonRun.textContent = "Run";
+    buttonRun.addEventListener("click", ()=> {
+           emitSocketFlag('RunInstance',event.target);
+     })
+    const info = document.createElement("h5");
+    info.classList.add("simulation_instance_info");
+    info.textContent = "SERVER RUNNING AT: "+url;
+
+    const buttonDelete = document.createElement("button");
+    buttonDelete.classList.add("simulation_instance_delete");
+    buttonDelete.id = "simulation_instance_delete";
+    buttonDelete.textContent = "Delete";
+    buttonDelete.addEventListener("click", () => {
+           emitSocketFlag('DeleteInstance',event.target);
+     });
+
+
+    newDiv.appendChild(label);
+    newDiv.appendChild(select);
+    newDiv.appendChild(buttonRun);
+    newDiv.appendChild(info);
+    newDiv.appendChild(buttonDelete);
+
+
+    containerDiv.appendChild(newDiv);
+    log_info("Created instance!",1);
+  }
+  function log_info(to_log,color_code=0){
+    const currentDate=new Date()
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth() 
+    const day = currentDate.getDate();
+    const hours = currentDate.getHours();
+    const minutes = currentDate.getMinutes();
+    const seconds = currentDate.getSeconds();
+    new_log=document.createElement('h4');
+    new_log.textContent=`${year}.${month}.${day}-`+`${hours}:${minutes}:${seconds}  `+to_log;
+    if(color_code==1)new_log.style.color='green';
+    if(color_code==2)new_log.style.color='red';
+    console=document.getElementById("log_console");
+    console.appendChild(new_log);
+  }
   
   const observer = new MutationObserver((mutationsList, observer) => {
     for (const mutation of mutationsList) {
@@ -307,6 +290,27 @@ function log_info(to_log,color_code=0){
   
   
   observer.observe(tableElement, config);
-  
+   //Code to block selecting OK MII STATUS when simulated NC_CODE contradicts it
+   const ncCodeSelect = document.getElementById('content_create_input2');
+   const miiStatusSelect = document.getElementById('content_create_input3');
+   
+   ncCodeSelect.addEventListener('change', () => {
+     const selectedValue = ncCodeSelect.value;
+     
+     if (selectedValue === '5' || selectedValue === '6' || selectedValue === '7') {
+       miiStatusSelect.value = 'NOK';
+       for (const option of miiStatusSelect.options) {
+         if (option.value === 'OK') {
+           option.disabled = true;
+         } else {
+           option.disabled = false;
+         }
+       }
+     } else {
+       for (const option of miiStatusSelect.options) {
+         option.disabled = false;
+       }
+     }
+   });
   
   
