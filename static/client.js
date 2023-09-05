@@ -1,5 +1,4 @@
 
-
   var socket = io.connect('http://127.0.0.1:5000/');
 
   socket.on('connect', function() {
@@ -104,11 +103,11 @@
             if (cells[0].textContent === selectedValue) {
               const SFC = cells[1].textContent;
               const NC_CODE = cells[2].textContent;
-              const MII_STATUS = cells[3].textContent;
+              const SCRAP_MESSAGE = cells[3].textContent;
               const Material_Number = cells[4].textContent;
               
               log_info(`Sending SFC ${SFC} to server....`)
-              socket.emit('message',JSON.stringify({'flag':'RunInstance','index':divIndex,'type':'Adaptronic','SFC':SFC,'NC_CODE':NC_CODE,'MatNumber':Material_Number}))
+              socket.emit('message',JSON.stringify({'flag':'RunInstance','index':divIndex,'type':'Adaptronic','SFC':SFC,'NC_CODE':NC_CODE,'MatNumber':Material_Number,'ScrapMessage':SCRAP_MESSAGE}))
             }
           }
         }

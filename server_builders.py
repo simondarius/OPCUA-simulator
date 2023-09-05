@@ -32,6 +32,7 @@ class base_server:
             while not stop_event.is_set():
                 pass
         finally:
+            global port
             self.server.stop()    
             
     def wait_for_PcO(self):
@@ -71,7 +72,8 @@ class Adaptronic(base_server):
         
         self.server_thread.start()
         return     
-    def simulate(self,SFC,MatNumber,NC_CODE):
+    def simulate(self,SFC,MatNumber,NC_CODE,scrap_message=""):
+        self.clear_parameters()    
         self.parameter_list[0].set_value(SFC)
         self.wait_for_PcO()
         try:
@@ -86,10 +88,15 @@ class Adaptronic(base_server):
                     self.parameter_list[3].set_value(self.NC_DICT[NC_CODE])
                     self.parameter_list[1].set_value('NOK')
                 
-            if(self.PcOResponse==ua.Variant(6, ua.VariantType.Int32)):
+            elif(self.PcOResponse==ua.Variant(6, ua.VariantType.Int32)):
                 self.clear_parameters()    
+            elif(self.PcOResponse==ua.Variant(2,ua.VariantType.Int32)):
+                    self.parameter_list[1].set_value('NOK')
+                    if(NC_CODE!='N/A'):
+                        self.parameter_list[3].set_value(self.NC_DICT[NC_CODE])
+                    self.parameter_list[2].set_value(scrap_message)    
             else:
-                raise Exception(f"Invalid PcO response,should have value in [1,6,10] got ({self.PcOResponse})")                 
+                raise Exception(f"Invalid PcO response,should have value in [1,2,6,10] got ({self.PcOResponse})")                 
             self.PcOResponse=None     
         except Exception as e:
             self.PcOResponse=None

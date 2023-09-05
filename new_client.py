@@ -4,15 +4,30 @@ from flask_socketio import SocketIO
 from flask_cors import CORS
 import json
 import logging
+from engineio.async_drivers import gevent
+import threading
 #<==== Server Builders =====>
 server_objects=list()
 
 app= Flask(__name__)
 CORS(app, resources={r'/*': {'origins': '*'}}) 
-socket = SocketIO(app, cors_allowed_origins="*")  
+socket = SocketIO(app, cors_allowed_origins="*",async_mode='gevent')  
 logging.basicConfig(level=logging.INFO, handlers=[logging.StreamHandler()])
 app.logger.addHandler(logging.StreamHandler())
 
+def RunInstanceWrapper(message):
+        try:
+            
+            index=int(message['index'])
+            app.logger.warning(f'Running instance at server of index : {index}')
+            assert(message['type'] in ['Adaptronic'])
+            if(message['type']=='Adaptronic'):
+                result=server_objects[index].simulate(message['SFC'],message['MatNumber'],message['NC_CODE'],message['ScrapMessage'])
+               
+                socket.emit('message',json.dumps({'flag':'RunInstanceOK','info':str(result)}))
+        except Exception as e:
+                socket.emit('message',json.dumps({'flag':'RunInstanceNOK','info':str(e)}))
+RunningInstances=list()
 @app.route('/')
 def index():
     return render_template('index.html',js_file_url=url_for('static',filename='client.js'))
@@ -48,17 +63,7 @@ def handle_request(data):
             socket.emit('message',json.dumps({'flag':'NewInstanceNOK','info':str(e)}))
 
     if flag=='RunInstance':
-        try:
-            index=int(message['index'])
-            print(index)
-            assert(message['type'] in ['Adaptronic'])
-            if(message['type']=='Adaptronic'):
-                result=server_objects[index].simulate(message['SFC'],message['MatNumber'],message['NC_CODE'])
-                result='tmp'
-                socket.emit('message',json.dumps({'flag':'RunInstanceOK','info':str(result)}))
-        except Exception as e:
-                        
-            socket.emit('message',json.dumps({'flag':'RunInstanceNOK','info':str(e)}))
+        threading.Thread(target=RunInstanceWrapper,args=(message,)).start()
+                               
 
-
-socket.run(app,debug=True)
+socket.run(app)
