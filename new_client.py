@@ -17,12 +17,11 @@ app.logger.addHandler(logging.StreamHandler())
 
 def RunInstanceWrapper(message):
         try:
-            
             index=int(message['index'])
             app.logger.warning(f'Running instance at server of index : {index}')
             assert(message['type'] in ['Adaptronic'])
             if(message['type']=='Adaptronic'):
-                result=server_objects[index].simulate(message['SFC'],message['MatNumber'],message['NC_CODE'],message['ScrapMessage'])
+                result=server_objects[index].simulate(message['SFC'],message['MatNumber'],message['NC_CODE'])
                
                 socket.emit('message',json.dumps({'flag':'RunInstanceOK','info':str(result)}))
         except Exception as e:
@@ -63,7 +62,8 @@ def handle_request(data):
             socket.emit('message',json.dumps({'flag':'NewInstanceNOK','info':str(e)}))
 
     if flag=='RunInstance':
-        threading.Thread(target=RunInstanceWrapper,args=(message,)).start()
-                               
+        thread=threading.Thread(target=RunInstanceWrapper,args=(message,))
+        thread.start()
+                                
 
 socket.run(app)

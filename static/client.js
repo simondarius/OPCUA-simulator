@@ -103,11 +103,11 @@
             if (cells[0].textContent === selectedValue) {
               const SFC = cells[1].textContent;
               const NC_CODE = cells[2].textContent;
-              const SCRAP_MESSAGE = cells[3].textContent;
-              const Material_Number = cells[4].textContent;
+           
+              const Material_Number = cells[3].textContent;
               
               log_info(`Sending SFC ${SFC} to server....`)
-              socket.emit('message',JSON.stringify({'flag':'RunInstance','index':divIndex,'type':'Adaptronic','SFC':SFC,'NC_CODE':NC_CODE,'MatNumber':Material_Number,'ScrapMessage':SCRAP_MESSAGE}))
+              socket.emit('message',JSON.stringify({'flag':'RunInstance','index':divIndex,'type':'Adaptronic','SFC':SFC,'NC_CODE':NC_CODE,'MatNumber':Material_Number}))
             }
           }
         }
@@ -131,23 +131,24 @@
       event.preventDefault();
       const SFC = document.getElementById("content_create_input1").value;
       const NC_SELECTOR = document.getElementById("content_create_input2").value;
-      const MII_SELECTOR = document.getElementById("content_create_input3").value
+    
       const MAT_NUMBER=document.getElementById("content_create_input4").value;
-      if (SFC && NC_SELECTOR && MII_SELECTOR) {
+      if (SFC && NC_SELECTOR && MAT_NUMBER) {
         const newRow = dataTable.insertRow();
         const cell1 = newRow.insertCell(0);
         const cell2 = newRow.insertCell(1);
         const cell3 = newRow.insertCell(2);
-        const cell4 = newRow.insertCell(3);
-        const cell5 = newRow.insertCell(4);
+
+        const cell5 = newRow.insertCell(3);
         cell1.innerHTML = id;
         cell2.innerHTML = SFC;
         cell3.innerHTML = NC_SELECTOR;
-        cell4.innerHTML = MII_SELECTOR;
+    
         cell5.innerHTML = MAT_NUMBER;
         log_info(`Submited new SFC ${SFC} of id ${id}`);
         id+=1;
         document.getElementById("SFC_CREATION_FORM").reset();
+        document.getElementById("content_create_input4").value=MAT_NUMBER;
       }
     });
   });
@@ -289,27 +290,6 @@
   
   
   observer.observe(tableElement, config);
-   //Code to block selecting OK MII STATUS when simulated NC_CODE contradicts it
-   const ncCodeSelect = document.getElementById('content_create_input2');
-   const miiStatusSelect = document.getElementById('content_create_input3');
    
-   ncCodeSelect.addEventListener('change', () => {
-     const selectedValue = ncCodeSelect.value;
-     
-     if (selectedValue === '5' || selectedValue === '6' || selectedValue === '7') {
-       miiStatusSelect.value = 'NOK';
-       for (const option of miiStatusSelect.options) {
-         if (option.value === 'OK') {
-           option.disabled = true;
-         } else {
-           option.disabled = false;
-         }
-       }
-     } else {
-       for (const option of miiStatusSelect.options) {
-         option.disabled = false;
-       }
-     }
-   });
   
   
