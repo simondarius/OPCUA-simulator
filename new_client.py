@@ -1,13 +1,15 @@
 from flask import Flask,render_template,request,jsonify,url_for
-from server_builders import Adaptronic
+from server_builders import Adaptronic,Tsk
 from flask_socketio import SocketIO
 from flask_cors import CORS
 import json
 import logging
 from engineio.async_drivers import gevent
 import threading
+import time
 #<==== Server Builders =====>
-server_objects=list()
+server_objects_adaptronic=list()
+server_objects_tsk=list()
 
 app= Flask(__name__)
 CORS(app, resources={r'/*': {'origins': '*'}}) 
@@ -18,12 +20,17 @@ app.logger.addHandler(logging.StreamHandler())
 def RunInstanceWrapper(message):
         try:
             index=int(message['index'])
-            app.logger.warning(f'Running instance at server of index : {index}')
-            assert(message['type'] in ['Adaptronic'])
-            if(message['type']=='Adaptronic'):
-                result=server_objects[index].simulate(message['SFC'],message['MatNumber'],message['NC_CODE'])
+            type=message['type']
+            app.logger.warning(f'Running instance at server of index, type is {type} : {index}')
+            assert(type in ['Adaptronic','Tsk'])
+            if(type=='Adaptronic'):
+                result=server_objects_adaptronic[index].simulate(message['SFC'],message['MatNumber'],message['NC_CODE'])
                
                 socket.emit('message',json.dumps({'flag':'RunInstanceOK','info':str(result)}))
+            elif(type=='Tsk'):
+                result=server_objects_tsk[index].simulate(message['SFC'],message['NC_CODE'])
+               
+                socket.emit('message',json.dumps({'flag':'RunInstanceOK','info':str(result)}))    
         except Exception as e:
                 socket.emit('message',json.dumps({'flag':'RunInstanceNOK','info':str(e)}))
 RunningInstances=list()
@@ -34,18 +41,27 @@ def index():
     
 @socket.on('connect')
 def socket_connect():
+    global server_objects_adaptronic
+    global server_objects_tsk
     app.logger.info('Client connected!')
-    socket.emit('message',json.dumps({'flag':'RefreshInterface','info':[server.url for server in server_objects]}))
+    socket.emit('message',json.dumps({'flag':'RefreshInterface','target':'Adaptronic','info':[server.url for server in server_objects_adaptronic]}))
+    time.sleep(2)
+    socket.emit('message',json.dumps({'flag':'RefreshInterface','target':'Tsk','info':[server.url for server in server_objects_tsk]}))
 @socket.on('message')
 def handle_request(data):
-    global server_objects
+    global server_objects_adaptronic
+    global server_objects_tsk
     app.logger.info('Received an message')
     message=json.loads(data)
     flag=message['flag']
     if flag=='DeleteInstance':
         try:
+            server=None
             index=int(message['index'])
-            server=server_objects.pop(index)
+            if(message['type']=='Adaptronic'):
+                server=server_objects_adaptronic.pop(index)
+            elif(message['type']=='Tsk'):
+                server=server_objects_tsk.pop(index)    
             server.stop_event.set()
             del server
             socket.emit('message',json.dumps({'flag':'DeleteInstanceOK','info':'None','index':index}))
@@ -54,11 +70,29 @@ def handle_request(data):
 
     if flag=='NewInstance':
         try:
-            assert(message['type'] in ['Adaptronic'])
-            if(message['type']=='Adaptronic'):new_server=Adaptronic()
-            server_objects.append(new_server)
-            socket.emit('message',json.dumps({'flag':'NewInstanceOK','info':str(new_server.url)}))
-        except Exception as e:            
+          
+       
+            assert(message['type'] in ['Adaptronic','Tsk'])
+           
+            url='None' 
+            if(message['type']=='Adaptronic'):
+              
+                 new_server=Adaptronic()
+               
+                 url=new_server.url
+                 server_objects_adaptronic.append(new_server)
+               
+            if(message['type']=='Tsk'):
+              
+                 new_server=Tsk()
+                 url=new_server.url
+                
+                 server_objects_tsk.append(new_server)
+            
+            socket.emit('message',json.dumps({'flag':'NewInstanceOK','info':str(url)}))
+        except Exception as e:
+           
+                      
             socket.emit('message',json.dumps({'flag':'NewInstanceNOK','info':str(e)}))
 
     if flag=='RunInstance':

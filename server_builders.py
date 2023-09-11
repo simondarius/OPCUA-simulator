@@ -114,3 +114,80 @@ class Adaptronic(base_server):
                 self.PcOResponse=None
                 return {'response':'NOK','error_message':str(e), 'message': f'Failed to run SFC {SFC} through server at {self.url}'}
               
+class Tsk(base_server):
+    def __init__(self):
+        super().__init__()
+        
+        self.StartTestMethod = self.Param.add_method(self.namespace, "StartTest", self.control_method_StartTest, [ua.VariantType.Int32], [ua.VariantType.Boolean]) 
+        self.AcknowledgeMethod = self.Param.add_method(self.namespace, "Acknowledge", self.control_method_Acknowledge, [ua.VariantType.Int32], [ua.VariantType.Boolean]) 
+        self.ScrapMethod = self.Param.add_method(self.namespace, "Scrap", self.control_method_Scrap, [ua.VariantType.Int32], [ua.VariantType.Boolean])
+        self.StartTestResponse=None
+        self.ScrapResponse=None
+        self.Acknowledge=None 
+        try:
+            self.build_parameters(["SFCserialNumber","FinalSerialNumber","TestResult","ErrorCode"])
+        except Exception as e:
+            print(str(e))    
+        temp=self.Param.add_variable(self.namespace,"CurrentTestStep",0)
+        temp.set_writable(True)
+        self.parameter_list.append(temp)
+        self.server_thread.start()
+        return    
+    def wait_for_Start(self):
+        while(self.StartTestResponse==None):
+            time.sleep(0.3)
+    def wait_for_ScrapOrAcknowledgement(self):
+        while(self.Acknowledge==None and self.ScrapResponse==None):
+            time.sleep(0.3)
+    def control_method_StartTest(self, parent, input_value):
+        try:
+            self.StartTestResponse=input_value
+            return [ua.Variant(True,ua.VariantType.Boolean)]
+        except:
+            return [ua.Variant(False,ua.VariantType.Boolean)]  
+    def control_method_Scrap(self, parent, input_value):
+        try:
+            self.ScrapResponse=input_value
+            return [ua.Variant(True,ua.VariantType.Boolean)]
+        except:
+            return [ua.Variant(False,ua.VariantType.Boolean)]  
+    def control_method_Acknowledge(self, parent, input_value):
+        try:
+            self.Acknowledge=input_value
+            return [ua.Variant(True,ua.VariantType.Boolean)]
+        except:
+            return [ua.Variant(False,ua.VariantType.Boolean)]       
+    def simulate(self,SFC,NC_CODE):
+        self.clear_parameters()    
+        self.parameter_list[0].set_value(SFC)
+        self.parameter_list[4].set_value(150)
+        self.wait_for_Start()
+        try:
+            if(self.StartTestResponse==ua.Variant(1, ua.VariantType.Int32)):
+                
+                if(NC_CODE=='N/A'):
+                    self.parameter_list[2].set_value('OK')
+                    self.parameter_list[3].set_value('')
+                else:
+                    self.parameter_list[3].set_value(NC_CODE)
+                    self.parameter_list[2].set_value('NOK')
+                self.parameter_list[4].set_value(20000)
+                     
+            else:
+                raise Exception(f"Invalid PcO Start test response,should have value in [1] got ({self.StartTestResponse})")                 
+            self.StartTestResponse=None     
+        except Exception as e:
+            self.StartTestResponse=None
+            return {'response':'NOK','error_message':str(e), 'message': f'Failed to run SFC {SFC} through server at {self.url}'}
+        
+        finally:
+            try:
+                self.wait_for_ScrapOrAcknowledgement()
+                self.clear_parameters()
+                self.ScrapResponse=None
+                self.Acknowledge=None      
+            except Exception as e:
+                self.ScrapResponse=None
+                self.Acknowledge=None  
+                return {'response':'NOK','error_message':str(e), 'message': f'Failed to run SFC {SFC} through server at {self.url}'}
+              

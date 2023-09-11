@@ -10,6 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Fjalla+One&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
   </head>
   <body>
 	<div class='root'>
@@ -19,8 +20,8 @@
 	        </div>
 	        <div class='header_menu_box'>
 	             <ul class="header_menu">
-	                 <li>Adaptronic</li>
-	                 <li>To be implemented</li>
+	                 <li id="Adaptronic_Header">Adaptronic</li>
+	                 <li id="TSK_Header">TSK</li>
 	                 <li>To be implemented</li>
 	                 <li>To be implemented</li>
 	                 <li>To be implemented</li>
@@ -29,35 +30,35 @@
 	        </div>
 	    </div>
 	    
-	    <div class='content'>
-	        <div class='content_main_window'>
+	    <div class='content' id="adaptronic_content">
+	        <div class='content_main_window' id="adaptronic_content_main_window">
 	            <div class='content_create_sfc'>
 	                <div class='content_create_sfc_new'>
 	                    <div class='content_create_sfc_new_title'>
 	                        <h1>Create new SFC</h1>
 	                    </div>
 	                    <div class="content_create_sfc_new_form">
-                          <form id="SFC_CREATION_FORM">
+                          <form class="SFC_CREATION_FORM">
                         
-                           <input type="text" id="content_create_input1" name="content_create_input1" placeholder="Enter SFC:" >
-                           <input type="text" id="content_create_input4" name="content_create_input4" placeholder="Material Number:" >
+                           <input type="text" class="content_create_input1" name="content_create_input1" placeholder="Enter SFC:" >
+                           <input type="text" class="content_create_input4" name="content_create_input4" placeholder="Material Number:" >
                            <label for="content_create_input2">Select NC_CODE description:</label>
-                           <select id="content_create_input2" name="content_create_input2" >
+                           <select class="content_create_input2" name="content_create_input2" >
                                <option value="N/A">N/A</option>
                                <option value="Testare: Eroare de detectare">Testare: Eroare de detectare</option>
                                <option value="Testare: Circuit Deschis">Testare: Circuit Deschis</option>
                                <option value="Testare: Scurtcircuit">Testare: Scurtcircuit</option>
                                <option value="Testare: Eroare Functionalitate">Testare: Eroare Functionalitate</option>
                             </select>
-                           <button class="submit-button"  id='random_button'>Random</button>
-                           <button class="submit-button" id='submit_button'>Submit</button>
+                           <button class="submit-button"  type="button" id='random_button_adaptronic'>Random</button>
+                           <button class="submit-button" type="button" id='submit_button_adaptronic'>Submit</button>
                          </form>
                         </div>
 	                </div>
 	                <div class='content_create_sfc_list'>
 	                   
 	               
-	                   <table class="content_table" id="content_table">
+	                   <table class="content_table">
                          <tr>
                           <th>ID</th>
                           <th>SFC</th>
@@ -73,18 +74,72 @@
 	                     <h3 class="simulation_menu_title">Adaptronic:</h3>
 	                     <ul class="header_menu">
 	                     
-       	                 <li id="simulation_new_instance">New Instance</li>
-       	                 <li id="simulation_run_all">Run All</li>
-       	                 <li id="simulation_delete_all">Delete All</li>
+       	                 <li class="simulation_new_instance" id="simulation_new_instance_adaptronic">New Instance</li>
    	                
    	                
    	                    
    	                 </ul>  
 	                </div>
-	                <div class='simulation_instance_container' id="simulation_instance_container">
+	                <div class='simulation_instance_container' >
 	                    
 	                </div>
-                  <div class="simulation_console" id="log_console">
+                  <div class="simulation_console" id="adaptronic_console">
+                    
+                  </div>
+	            </div>
+	        </div>
+	        
+	    </div>
+
+		<div class='content' id="tsk_content" >
+	        <div class='content_main_window' id="tsk_content_main_window">
+	            <div class='content_create_sfc'>
+	                <div class='content_create_sfc_new'>
+	                    <div class='content_create_sfc_new_title'>
+	                        <h1>Create new SFC</h1>
+	                    </div>
+	                    <div class="content_create_sfc_new_form">
+                          <form class="SFC_CREATION_FORM">
+                        
+                           <input type="text" class="content_create_input1" name="content_create_input1" placeholder="Enter SFC:" >
+                           <label for="content_create_input2">Select NC_CODE description:</label>
+                           <select class="content_create_input2" name="content_create_input2" >
+                               <option value="N/A">N/A</option>
+                               <option value="Testare: Eroare de detectare">NC0196000000</option>
+                            </select>
+                           <button class="submit-button"  id='random_button_tsk' type="button">Random</button>
+                           <button class="submit-button" id='submit_button_tsk' type="button">Submit</button>
+                         </form>
+                        </div>
+	                </div>
+	                <div class='content_create_sfc_list'>
+	                   
+	               
+	                   <table class="content_table">
+                         <tr>
+                          <th>ID</th>
+                          <th>SFC</th>
+                          <th>NC_CODE</th>
+                         </tr>
+                        </table>
+
+	                </div>
+	            </div>
+	            <div class='content_start_simulation'>
+	                <div class='start_simulation_header'>
+	                     <h3 class="simulation_menu_title">TSK:</h3>
+	                     <ul class="header_menu">
+	                     
+       	                 <li class="simulation_new_instance" id="simulation_new_instance_tsk">New Instance</li>
+   	                
+   	                
+   	                    
+   	                 </ul>  
+	                </div>
+	                <div class='simulation_instance_container' >
+	                    
+	                </div>
+                  <div class="simulation_console" id="tsk_console">
                     
                   </div>
 	            </div>
