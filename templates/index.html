@@ -16,7 +16,8 @@
 	<div class='root'>
 	    <div class='header'>
 	        <div class='logo_box'>
-	        <img alt="logo" src="{{url_for('static',filename='logo.png')}}">
+	        <img id='logoImage' alt="logo" src="{{blue_logo_url}}">
+			
 	        </div>
 	        <div class='header_menu_box'>
 	             <ul class="header_menu">
@@ -147,6 +148,11 @@
 	        
 	    </div>
 	</div>
+<script >
+
+window.blue_logo_url = '{{blue_logo_url}}';
+window.red_logo_url = '{{red_logo_url}}';
+</script>	
 <script src="{{js_file_url}}"></script>
   </body>
 </html>

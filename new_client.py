@@ -36,7 +36,7 @@ def RunInstanceWrapper(message):
 RunningInstances=list()
 @app.route('/')
 def index():
-    return render_template('index.html',js_file_url=url_for('static',filename='client.js'))
+    return render_template('index.html',js_file_url=url_for('static',filename='client.js'),blue_logo_url=url_for('static',filename='logo.png'),red_logo_url=url_for('static',filename='logo_red.png'))
 
     
 @socket.on('connect')

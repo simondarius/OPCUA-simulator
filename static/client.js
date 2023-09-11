@@ -161,7 +161,7 @@
     const header_adaptronic=document.getElementById('Adaptronic_Header');
     const randomButtonadaptronic = document.getElementById("random_button_adaptronic");
     const randomButtontsk=document.getElementById("random_button_tsk");
-
+    const logoImage=document.getElementById('logoImage')
     submitBtnadaptronic.addEventListener("click", function () {
       event.preventDefault();
       const dataTable=adaptronic_content.querySelector(".content_table");
@@ -209,24 +209,26 @@
       event.preventDefault();
       
       log_info('TSK_Clicked',2);
+      changeGradientAsync('rgba(96,119,166,1)','rgba(147,42,42,1)')
       anime({
-        targets:currentActiveView,
-        top:'120%',
+        targets:[currentActiveView],
+        top:['120%'],
         opacity:0,
-        duration:1000,
+        duration:700,
         easing:'linear',
         complete:function(){
+          logoImage.src=window.red_logo_url;
           anime({
-            targets:"#tsk_content",
-            top:"10%",
+            targets:["#tsk_content"],
+            top:["10%"],
             opacity:1,
-            duration:1000,
+            duration:700,
             easing:'linear',
             complete:function(){
                anime({
                 targets:'.header_menu',
                 color:"#932A2A",
-                duration:500,
+                duration:200,
                 easing:'linear',
                })
             }
@@ -239,23 +241,26 @@
     header_adaptronic.addEventListener('click',function(){
       event.preventDefault();
       log_info('Adaptronic Clicked!',2);
+      changeGradientAsync('rgba(147,42,42,1)','rgba(96,119,166,1)',)
       anime({
         targets:currentActiveView,
         top:'120%',
         opacity:0,
-        duration:1000,
+        duration:700,
         easing:'linear',
         complete:function(){
+          logoImage.src=window.blue_logo_url
           anime({
             targets:"#adaptronic_content",
             top:"10%",
             opacity:1,
-            duration:1000,
+            duration:700,
             easing:'linear',
             complete:function(){
-              anime({targets:'.header_menu',
+              anime({
+              targets:'.header_menu',
               color:"#575759",
-              duration:500,
+              duration:200,
               easing:'linear',
             })
             }
@@ -426,3 +431,22 @@ const config_tsk = { childList: true, subtree: true };
 
 
 observer_tsk.observe(document.getElementById('tsk_content').querySelector('.content_table'), config_tsk);
+
+async function changeGradientAsync(from,to) {
+  const rootElement = document.querySelector('.root');
+  if (!rootElement) {
+    console.error('Element with class "root" not found.');
+    return;
+  }
+
+
+  for (let delta = 0; delta <= 100; delta++) {
+    rootElement.style.background = `linear-gradient(180deg, rgba(255,255,255,1) ${delta}%, ${from} 100%)`;
+    await new Promise(resolve => setTimeout(resolve, 5)); 
+  }
+  rootElement.style.background='linear-gradient(180deg, rgba(255,255,255,1) 99%, rgba(96,119,166,1) 100%);'
+  for (let delta = 99; delta >= 0; delta--) {
+    rootElement.style.background = `linear-gradient(180deg, rgba(255,255,255,1) ${delta}%, ${to} 100%)`;
+    await new Promise(resolve => setTimeout(resolve, 5)); 
+  }
+}
