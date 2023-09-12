@@ -23,7 +23,7 @@
 	             <ul class="header_menu">
 	                 <li id="Adaptronic_Header">Adaptronic</li>
 	                 <li id="TSK_Header">TSK</li>
-	                 <li>To be implemented</li>
+	                 <li id="Telsonic_Header">Telsonic</li>
 	                 <li>To be implemented</li>
 	                 <li>To be implemented</li>
 	                 
@@ -147,11 +147,65 @@
 	        </div>
 	        
 	    </div>
+
+		<div class='content' id="telsonic_content" >
+	        <div class='content_main_window' id="telsonic_content_main_window">
+	            <div class='content_create_sfc'>
+	                <div class='content_create_sfc_new'>
+	                    <div class='content_create_sfc_new_title'>
+	                        <h1>Create new SFC</h1>
+	                    </div>
+	                    <div class="content_create_sfc_new_form">
+                          <form class="SFC_CREATION_FORM">
+                        
+                           <input type="text" class="content_create_input1" name="content_create_input1" placeholder="Enter Barcode:" >
+                           <label for="content_create_input2">Input ErrorCode :</label>
+                           <input type="text" class="content_create_input2" name="content_create_input2" placeholder="Enter ErrorCode:" >
+                           <button class="submit-button"  id='random_button_telsonic' type="button">Random</button>
+                           <button class="submit-button" id='submit_button_telsonic' type="button">Submit</button>
+                         </form>
+                        </div>
+	                </div>
+	                <div class='content_create_sfc_list'>
+	                   
+	               
+	                   <table class="content_table">
+                         <tr>
+                          <th>ID</th>
+                          <th>Barcode</th>
+                          <th>Errorcode</th>
+                         </tr>
+                        </table>
+
+	                </div>
+	            </div>
+	            <div class='content_start_simulation'>
+	                <div class='start_simulation_header'>
+	                     <h3 class="simulation_menu_title">Telsonic:</h3>
+	                     <ul class="header_menu">
+	                     
+       	                 <li class="simulation_new_instance" id="simulation_new_instance_telsonic">New Instance</li>
+   	                
+   	                
+   	                    
+   	                 </ul>  
+	                </div>
+	                <div class='simulation_instance_container' >
+	                    
+	                </div>
+                  <div class="simulation_console" id="telsonic_console">
+                    
+                  </div>
+	            </div>
+	        </div>
+	        
+	    </div>
 	</div>
 <script >
 
 window.blue_logo_url = '{{blue_logo_url}}';
 window.red_logo_url = '{{red_logo_url}}';
+window.green_logo_url = '{{green_logo_url}}';
 </script>	
 <script src="{{js_file_url}}"></script>
   </body>

@@ -8,11 +8,14 @@ from opcua import Server
 from opcua import ua
 import time
 from threading import Thread,Event
+import random
 port=6000
 class base_server:
     def __init__(self):
         global port
         self.server=Server()
+        self.NC_DICT={'Testare: Eroare de detectare':'NC0193060000','Testare: Circuit Deschis':'NC0192910000','Testare: Scurtcircuit':'NC0192960000','Testare: Eroare Functionalitate':'NC0192970000',
+                      'SFC nu este in asteptare':'NC0003030000','Lipsa parametri proces':'NC0002870000','Parametri proces multiplii':'NC0003040000'}
         self.server.name=f"portServer:{port}"
         self.url=f"opc.tcp://localhost:{port}"
         self.server.set_endpoint(self.url)
@@ -53,8 +56,7 @@ class Adaptronic(base_server):
         super().__init__()
         
         
-        self.NC_DICT={'Testare: Eroare de detectare':'NC0193060000','Testare: Circuit Deschis':'NC0192910000','Testare: Scurtcircuit':'NC0192960000','Testare: Eroare Functionalitate':'NC0192970000',
-                      'SFC nu este in asteptare':'NC0003030000','Lipsa parametri proces':'NC0002870000','Parametri proces multiplii':'NC0003040000'}
+       
         
         self.PcOContorllMethod = self.Param.add_method(self.namespace, "PcOControll", self.control_method, [ua.VariantType.Int32], [ua.VariantType.Boolean]) 
         try:
@@ -131,6 +133,7 @@ class Tsk(base_server):
         temp=self.Param.add_variable(self.namespace,"CurrentTestStep",0)
         temp.set_writable(True)
         self.parameter_list.append(temp)
+        self.parameter_list[4].set_value(100)
         self.server_thread.start()
         return    
     def wait_for_Start(self):
@@ -169,7 +172,7 @@ class Tsk(base_server):
                     self.parameter_list[2].set_value('OK')
                     self.parameter_list[3].set_value('')
                 else:
-                    self.parameter_list[3].set_value(NC_CODE)
+                    self.parameter_list[3].set_value(self.NC_DICT[NC_CODE])
                     self.parameter_list[2].set_value('NOK')
                 self.parameter_list[4].set_value(20000)
                      
@@ -184,10 +187,85 @@ class Tsk(base_server):
             try:
                 self.wait_for_ScrapOrAcknowledgement()
                 self.clear_parameters()
+                self.parameter_list[4].set_value(100)
                 self.ScrapResponse=None
                 self.Acknowledge=None      
             except Exception as e:
                 self.ScrapResponse=None
                 self.Acknowledge=None  
                 return {'response':'NOK','error_message':str(e), 'message': f'Failed to run SFC {SFC} through server at {self.url}'}
+
+
+class Telsonic(base_server):
+    def __init__(self):
+        super().__init__()
+        try:
+            self.build_parameters(["weldBad","weldOk","resultWireBarCode","statusWireBarCode","processStep","cycleTime","distanceAbs","distanceDiff","energy",
+                                   "lossPower","maxForce","maxPower","runSpeed","trigDistance","trigForce","trigTime","weldTime"])
+        except Exception as e:
+            print(str(e))    
+        temp=self.Param.add_variable(self.namespace,"errorNumber",0)
+        temp.set_writable(True)
+        self.parameter_list.append(temp)
+        
+        self.server_thread.start()
+        return    
+    def wait_for_ProcessStep(self,for_step):
+        while(self.parameter_list[4]!=None):
+            time.sleep(0.3)
+        
+    def simulate(self,Barcode,ErrorCode):
+        self.clear_parameters()    
+        try:
+            for step in range(1,9):
+                if step==1:
+                    self.parameter_list[4].set_value(str(step))
+                elif step==2:
+                    self.parameter_list[4].set_value(str(step))
+                    self.parameter_list[3].set_value(str(Barcode))
+                elif step==3:
+                    self.parameter_list[4].set_value(str(step))
+                    
+                    while(self.parameter_list[4].get_value()!="4"):
+                        time.sleep(0.3)
+                    
+                elif step==4:
+                    self.parameter_list[4].set_value(str(step))
+                elif step==5:
+                    self.parameter_list[4].set_value(str(step))
+                elif step==6:
+                    self.parameter_list[3].set_value("")
+                    self.parameter_list[2].set_value(str(Barcode))
+                    self.parameter_list[4].set_value(str(step))
+                elif step==7:
+                    self.parameter_list[4].set_value(str(step))
+                    if(int(ErrorCode) != 0):
+                        self.parameter_list[0].set_value("1")
+                        self.parameter_list[1].set_value("0")
+                          
+                    else:
+                        self.parameter_list[0].set_value("0")
+                        self.parameter_list[1].set_value("1")
+                    
+                    self.parameter_list[17].set_value(int(ErrorCode))
+                    for i in range(0,18):
+                        if i==0 or i==1 or i==2 or i==3 or i==4 or i==17:
+                            pass
+                        else:
+                            self.parameter_list[i].set_value(str(random.randint(0,11)))
+                            
+                else:
+                    while(self.parameter_list[4].get_value()!="8"):
+                        time.sleep(0.3)
+                    self.parameter_list[4].set_value(str(step)) 
+                time.sleep(1)
+
+        except Exception as e:
+           return {'response':'NOK','error_message':str(e), 'message': f'Failed to run Barcode {Barcode} through server at {self.url}'}
+        
+        finally:
+            try:
+                self.parameter_list[4].set_value("1")
+            except Exception as e:
+              return {'response':'NOK','error_message':str(e), 'message': f'Failed to run Barcode {Barcode} through server at {self.url}'}
               

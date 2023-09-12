@@ -312,10 +312,51 @@ body{
   color: #DF7E7E;
 }
 #tsk_content .simulation_menu_title{
-    color: #932A2A;
+    color: #932a2a;
     text-shadow: 1px 1px 2px #DF7E7E;
 }
 #tsk_content .content_create_sfc_new_title h1{
     color: #932A2A;
     text-shadow: 1px 1px 2px #DF7E7E;
+}
+
+
+#Telsonic_Header:hover{
+  color:#d1df7e;
+  cursor:pointer;
+}
+#telsonic_content{
+  top:120%;
+  opacity: 0;
+ 
+}
+#telsonic_content .submit-button {
+  align-self: center;
+  padding: 8px 16px;
+  background-color: #77932a;
+  color: white;
+  border: none;
+  font-family: 'Fjalla One', sans-serif;
+  
+  margin-left:5px;
+  margin-right:25px;
+  border-radius: 2px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+#telsonic_content .submit-button:hover {
+  background-color:#d1df7e;
+}
+#telsonic_content .simulation_new_instance:hover{
+  cursor:pointer;
+  color: #d1df7e;
+}
+#telsonic_content .simulation_menu_title{
+    color: #77932a;
+    text-shadow: 1px 1px 2px #d1df7e;
+}
+#telsonic_content .content_create_sfc_new_title h1{
+    color: #77932a;
+    text-shadow: 1px 1px 2px #d1df7e;
 }
