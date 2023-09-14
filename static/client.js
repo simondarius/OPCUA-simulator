@@ -39,6 +39,14 @@
               createInstanceDiv(url,target=document.getElementById('telsonic_content'));
             });
          }
+        }else if (target=='Arburg'){
+          const element_list=document.getElementById('arburg_content').querySelector('.simulation_instance_container').querySelectorAll('.simulation_instance')
+            if(element_list.length!=response.info.length){
+            document.getElementById('arburg_content').querySelector('.simulation_instance_container').innerHTML='';
+            response.info.forEach(function(url){
+              createInstanceDiv(url,target=document.getElementById('arburg_content'));
+            });
+         }
         }
         break;
 
@@ -88,7 +96,9 @@
            type='Tsk'
          }else if(currentActiveView==document.getElementById('telsonic_content')){
            type='Telsonic'
-         }
+         }else if(currentActiveView==document.getElementById('arburg_content')){
+          type='Arburg'
+        }
         if(flag=='NewInstance'){
           log_info('Started creating new instance....');
           socket.emit('message',JSON.stringify({'flag':'NewInstance','type':type}));
@@ -174,20 +184,25 @@
   document.getElementById("simulation_new_instance_adaptronic").addEventListener("click",()=>{emitSocketFlag('NewInstance');});
   document.getElementById("simulation_new_instance_tsk").addEventListener("click",()=>{emitSocketFlag('NewInstance');});
   document.getElementById("simulation_new_instance_telsonic").addEventListener("click",()=>{emitSocketFlag('NewInstance');});
+  document.getElementById("simulation_new_instance_arburg").addEventListener("click",()=>{emitSocketFlag('NewInstance');});
   //Add entry to table 
   
   document.addEventListener("DOMContentLoaded", function () {
     const tsk_content=document.getElementById('tsk_content')
     const adaptronic_content=document.getElementById('adaptronic_content')
     const telsonic_content=document.getElementById('telsonic_content')
+    const arburg_content=document.getElementById('arburg_content')
     const submitBtnadaptronic =  document.getElementById("submit_button_adaptronic");
     const submitBtntsk=document.getElementById("submit_button_tsk");
     const header_tsk=document.getElementById('TSK_Header');
     const header_adaptronic=document.getElementById('Adaptronic_Header');
+    const header_arburg=document.getElementById('Arburg_Header');
     const randomButtonadaptronic = document.getElementById("random_button_adaptronic");
     const randomButtontsk=document.getElementById("random_button_tsk");
     const submit_button_telsonic = document.getElementById("submit_button_telsonic");
     const random_button_telsonic=document.getElementById("random_button_telsonic");
+    const submit_button_arburg = document.getElementById("submit_button_arburg");
+    const random_button_arburg=document.getElementById("random_button_arburg");
     const header_telsonic=document.getElementById('Telsonic_Header');
     const logoImage=document.getElementById('logoImage')
     submitBtnadaptronic.addEventListener("click", function () {
@@ -251,6 +266,24 @@
         telsonic_content.querySelector(".SFC_CREATION_FORM").reset();
       }
     });
+    submit_button_arburg.addEventListener("click", function () {
+      event.preventDefault();
+      const dataTable=telsonic_content.querySelector(".content_table");
+      const Barcode = telsonic_content.querySelector(".content_create_input1").value;
+      const ErrorCode = telsonic_content.querySelector(".content_create_input2").value;
+      if (Barcode && ErrorCode) {
+        const newRow = dataTable.insertRow();
+        const cell1 = newRow.insertCell(0);
+        const cell2 = newRow.insertCell(1);
+        const cell3 = newRow.insertCell(2);
+        cell1.innerHTML = telsonic_table_id;
+        cell2.innerHTML = Barcode;
+        cell3.innerHTML = ErrorCode;
+        log_info(`Submited new Barcode ${Barcode} of id ${telsonic_table_id}`);
+        telsonic_table_id+=1;
+        telsonic_content.querySelector(".SFC_CREATION_FORM").reset();
+      }
+    });
     header_tsk.addEventListener('click',function(){
       event.preventDefault();
       
@@ -263,6 +296,9 @@
         case document.getElementById('telsonic_content'):
           changeGradientAsync('rgba(119,147,42,1)','rgba(147,42,42,1)')
           break;
+        case document.getElementById('arburg_content'):
+          changeGradientAsync('rgba(126,223,210,1)','rgba(147,42,42,1)')
+          break;    
         default:
           break;     
       }
@@ -305,6 +341,9 @@
         case document.getElementById('tsk_content'):
           changeGradientAsync('rgba(147,42,42,1)','rgba(119,147,42,1)')
           break;
+        case document.getElementById('arburg_content'):
+          changeGradientAsync('rgba(126,223,210,1)','rgba(119,147,42,1)')
+          break;  
         default:
           break;     
       }
@@ -346,6 +385,9 @@
         case document.getElementById('tsk_content'):
           changeGradientAsync('rgba(147,42,42,1)','rgba(96,119,166,1)')
           break;
+        case document.getElementById('arburg_content'):
+          changeGradientAsync('rgba(126,223,210,1)','rgba(96,119,166,1)')
+          break;
         default:
           break;     
       }
@@ -375,6 +417,49 @@
         }
       })
        currentActiveView=document.getElementById('adaptronic_content');
+    })
+    header_arburg.addEventListener('click',function(){
+      event.preventDefault();
+      log_info('Arburg Clicked!',2);
+      switch(currentActiveView){
+        case document.getElementById('telsonic_content'):
+          changeGradientAsync('rgba(119,147,42,1)','rgba(126,223,210,1)')
+          break;
+        case document.getElementById('tsk_content'):
+          changeGradientAsync('rgba(147,42,42,1)','rgba(126,223,210,1)')
+          break;
+        case document.getElementById('adaptronic_content'):
+          changeGradientAsync('rgba(96,119,166,1)','rgba(126,223,210,1)')
+          break;  
+        default:
+          break;     
+      }
+      anime({
+        targets:currentActiveView,
+        top:'120%',
+        opacity:0,
+        duration:700,
+        easing:'linear',
+        complete:function(){
+          logoImage.src=window.light_logo_url
+          anime({
+            targets:"#arburg_content",
+            top:"10%",
+            opacity:1,
+            duration:700,
+            easing:'linear',
+            complete:function(){
+              anime({
+              targets:'.header_menu',
+              color:"#57827b",
+              duration:200,
+              easing:'linear',
+            })
+            }
+          })
+        }
+      })
+       currentActiveView=document.getElementById('arburg_content');
     })
      randomButtonadaptronic.addEventListener("click", function () {
       event.preventDefault();
@@ -410,8 +495,19 @@
       const randomOptionIndex = Math.floor(Math.random() * ncCodeSelect.options.length);
       ncCodeSelect.selectedIndex = randomOptionIndex;
     });
-  });
+    random_button_arburg.addEventListener("click", function () {
+      event.preventDefault();
+      const sfcInput=telsonic_content.querySelector(".content_create_input1");
+      const ncCodeSelect=telsonic_content.querySelector(".content_create_input2");
+      const randomSFC = Math.floor(Math.random() * 9000000000000) + 1000000000000;
+      sfcInput.value = randomSFC;
   
+      
+      const randomOptionIndex = Math.floor(Math.random() * ncCodeSelect.options.length);
+      ncCodeSelect.selectedIndex = randomOptionIndex;
+    });
+    
+  });
   
   
  

@@ -268,4 +268,45 @@ class Telsonic(base_server):
                 self.parameter_list[4].set_value("1")
             except Exception as e:
               return {'response':'NOK','error_message':str(e), 'message': f'Failed to run Barcode {Barcode} through server at {self.url}'}
-              
+class Arburg(base_server):
+    def __init__(self):
+        super().__init__()
+        self.K1002=self.Param.add_variable(self.namespace,"K1002-Value",ua.Variant(0,ua.VariantType.Int32))
+        self.K1002.set_writable()
+        self.K1003=self.Param.add_variable(self.namespace,"K1003-Value",ua.Variant(0,ua.VariantType.Int32))
+        self.K1003.set_writable()
+        self.K1108=self.Param.add_variable(self.namespace,"K1108-Value",ua.Variant(0,ua.VariantType.Int32))
+        self.K1108.set_writable()
+        self.K1109=self.Param.add_variable(self.namespace,"K1109-Value",ua.Variant(0,ua.VariantType.Int32))
+        self.K1109.set_writable()
+        self.K1110=self.Param.add_variable(self.namespace,"K1110-Value",ua.Variant(0,ua.VariantType.Int32))
+        self.K1110.set_writable()
+        self.S1109=self.Param.add_variable(self.namespace,"S1109-Value",ua.Variant(0,ua.VariantType.Int32))
+        self.S1109.set_writable()
+        self.S1110=self.Param.add_variable(self.namespace,"S1110-Value",ua.Variant(0,ua.VariantType.Int32))
+        self.S1110.set_writable()
+        self.f1450_1=self.Param.add_variable(self.namespace,"f1450.1-Value",ua.Variant(0,ua.VariantType.UInt32))
+        self.f1450_1.set_writable()
+        self.f1450_2=self.Param.add_variable(self.namespace,"f1450.2-Value",ua.Variant(0,ua.VariantType.UInt32))
+        self.f1450_2.set_writable()
+        self.f1450_3=self.Param.add_variable(self.namespace,"f1450.3-Value",ua.Variant(0,ua.VariantType.UInt32))
+        self.f1450_3.set_writable()
+        self.f1450_4=self.Param.add_variable(self.namespace,"f1450.4-Value",ua.Variant(0,ua.VariantType.UInt32))
+        self.f1450_4.set_writable()
+        self.f1450_5=self.Param.add_variable(self.namespace,"f1450.5-Value",ua.Variant(0,ua.VariantType.UInt32))
+        self.f1450_5.set_writable()
+        self.f1450_6=self.Param.add_variable(self.namespace,"f1450.6-Value",ua.Variant(0,ua.VariantType.UInt32))
+        self.f1450_6.set_writable()
+        self.f96352=self.Param.add_variable(self.namespace,"f96352-Value","")
+        self.f96352.set_writable()
+        self.SetPartID = self.Param.add_method(self.namespace, "SetPartID", self.SetPartID_method, [ua.VariantType.String], [ua.VariantType.Boolean]) 
+
+        self.server_thread.start()
+        return    
+    def SetPartID_method(self,parent,input_value):
+        try:
+            self.f96352.set_value(input_value)
+            return [ua.Variant(True,ua.VariantType.Boolean)]
+        except:
+            return [ua.Variant(False,ua.VariantType.Boolean)]
+                            

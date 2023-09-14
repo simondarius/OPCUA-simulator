@@ -284,6 +284,10 @@ body{
   color:#DF7E7E;
   cursor:pointer;
 }
+#Arburg_Header:hover{
+  color:#7edfd2;
+  cursor:pointer;
+}
 #tsk_content{
   top:120%;
   opacity: 0;
@@ -359,4 +363,39 @@ body{
 #telsonic_content .content_create_sfc_new_title h1{
     color: #77932a;
     text-shadow: 1px 1px 2px #d1df7e;
+}
+#arburg_content{
+  top:120%;
+  opacity: 0;
+ 
+}
+#arburg_content .submit-button {
+  align-self: center;
+  padding: 8px 16px;
+  background-color: #53a398;
+  color: white;
+  border: none;
+  font-family: 'Fjalla One', sans-serif;
+  
+  margin-left:5px;
+  margin-right:25px;
+  border-radius: 2px;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+#arburg_content .submit-button:hover {
+  background-color:#a8ffee;
+}
+#arburg_content .simulation_new_instance:hover{
+  cursor:pointer;
+  color: #a8ffee;
+}
+#arburg_content .simulation_menu_title{
+    color: #53a398;
+    text-shadow: 1px 1px 2px #a8ffee;
+}
+#arburg_content .content_create_sfc_new_title h1{
+    color: #53a398;
+    text-shadow: 1px 1px 2px #a8ffee;
 }
