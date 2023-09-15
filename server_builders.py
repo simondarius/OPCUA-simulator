@@ -271,36 +271,68 @@ class Telsonic(base_server):
 class Arburg(base_server):
     def __init__(self):
         super().__init__()
+        self.arburg_counter=0
+        self.protocol_counter=0
         self.K1002=self.Param.add_variable(self.namespace,"K1002-Value",ua.Variant(0,ua.VariantType.Int32))
         self.K1002.set_writable()
+       
         self.K1003=self.Param.add_variable(self.namespace,"K1003-Value",ua.Variant(0,ua.VariantType.Int32))
         self.K1003.set_writable()
-        self.K1108=self.Param.add_variable(self.namespace,"K1108-Value",ua.Variant(0,ua.VariantType.Int32))
+        
+        self.K1108=self.Param.add_variable(self.namespace,"K1108-Value",ua.Variant(1,ua.VariantType.Int32))
         self.K1108.set_writable()
+        
         self.K1109=self.Param.add_variable(self.namespace,"K1109-Value",ua.Variant(0,ua.VariantType.Int32))
         self.K1109.set_writable()
+        
         self.K1110=self.Param.add_variable(self.namespace,"K1110-Value",ua.Variant(0,ua.VariantType.Int32))
         self.K1110.set_writable()
+        
         self.S1109=self.Param.add_variable(self.namespace,"S1109-Value",ua.Variant(0,ua.VariantType.Int32))
+        
         self.S1109.set_writable()
         self.S1110=self.Param.add_variable(self.namespace,"S1110-Value",ua.Variant(0,ua.VariantType.Int32))
+        
         self.S1110.set_writable()
         self.f1450_1=self.Param.add_variable(self.namespace,"f1450.1-Value",ua.Variant(0,ua.VariantType.UInt32))
         self.f1450_1.set_writable()
+        
         self.f1450_2=self.Param.add_variable(self.namespace,"f1450.2-Value",ua.Variant(0,ua.VariantType.UInt32))
         self.f1450_2.set_writable()
+        
         self.f1450_3=self.Param.add_variable(self.namespace,"f1450.3-Value",ua.Variant(0,ua.VariantType.UInt32))
         self.f1450_3.set_writable()
+        
         self.f1450_4=self.Param.add_variable(self.namespace,"f1450.4-Value",ua.Variant(0,ua.VariantType.UInt32))
         self.f1450_4.set_writable()
+        
         self.f1450_5=self.Param.add_variable(self.namespace,"f1450.5-Value",ua.Variant(0,ua.VariantType.UInt32))
         self.f1450_5.set_writable()
+        
         self.f1450_6=self.Param.add_variable(self.namespace,"f1450.6-Value",ua.Variant(0,ua.VariantType.UInt32))
         self.f1450_6.set_writable()
+        
         self.f96352=self.Param.add_variable(self.namespace,"f96352-Value","")
         self.f96352.set_writable()
-        self.SetPartID = self.Param.add_method(self.namespace, "SetPartID", self.SetPartID_method, [ua.VariantType.String], [ua.VariantType.Boolean]) 
+        self.SetPartID = self.Param.add_method(self.namespace, "SetPartID", self.SetPartID_method, [ua.VariantType.String], [ua.VariantType.Boolean])
 
+        variant_array = [
+         ua.Variant(1, ua.VariantType.Int16),
+         ua.Variant(25, ua.VariantType.Int16),
+         ua.Variant(3.67028, ua.VariantType.Float),
+         ua.Variant(1215.05, ua.VariantType.Float),
+         ua.Variant("4109283901234, 12093849501234, 1203948124012", ua.VariantType.String),
+         ua.Variant(0, ua.VariantType.Int16),
+         ua.Variant(0, ua.VariantType.Int16),
+         ua.Variant(0, ua.VariantType.Int16)
+        ] 
+
+
+        dv = ua.DataValue(variant_array)
+
+        self.var_array=self.Param.add_variable(self.namespace,"f14007-Last",dv)
+        self.var_array.set_writable() 
+        self.clear_parameters()
         self.server_thread.start()
         return    
     def SetPartID_method(self,parent,input_value):
@@ -309,4 +341,82 @@ class Arburg(base_server):
             return [ua.Variant(True,ua.VariantType.Boolean)]
         except:
             return [ua.Variant(False,ua.VariantType.Boolean)]
-                            
+    def SetParameterArray(self,error_code=0):
+        variant_array=[None,None,None,None,None,None,None,None]
+        if(error_code==0):
+            variant_array[0]=ua.Variant(1, ua.VariantType.Int16)
+            variant_array[7] = ua.Variant(0, ua.VariantType.Int16)
+        else:
+            variant_array[0]=ua.Variant(0, ua.VariantType.Int16)
+            variant_array[7] = ua.Variant(error_code, ua.VariantType.Int16)
+        print('Here1')        
+        variant_array[1] = ua.Variant(self.arburg_counter, ua.VariantType.Int16)
+        print('Here2')  
+        self.arburg_counter+=1
+        variant_array[2] = ua.Variant(random.randint(0,14), ua.VariantType.Int16)
+        print('Here3')  
+        variant_array[3] = ua.Variant(0.01, ua.VariantType.Float)
+        print('Here4')  
+        variant_array[4] = ua.Variant(0.02, ua.VariantType.Float)
+        print('Here5')  
+        variant_array[5] = ua.Variant(self.protocol_counter, ua.VariantType.Int16)
+        print('Here6')  
+        self.protocol_counter+=1
+        variant_array[6] = ua.Variant(self.f96352.get_value(), ua.VariantType.String)
+        print('Here7')  
+        updated_data_value = ua.DataValue(variant_array)
+        print('Here8')
+        print(variant_array)
+        print(updated_data_value)
+        self.var_array.set_value(updated_data_value)
+        print('Here9')
+    def clear_parameters(self):
+        self.K1002.set_value(None) 
+        self.K1003.set_value(None)
+        self.K1109.set_value(None)
+        self.K1110.set_value(None)
+        self.f1450_1.set_value(None)
+        self.f1450_2.set_value(None)
+        self.f1450_3.set_value(None)
+        self.f1450_4.set_value(None)
+        self.f1450_5.set_value(None)
+        self.f1450_6.set_value(None)
+        self.S1109.set_value(0)
+        self.S1110.set_value(0)
+    def simulate(self,NC_CODE):
+        self.clear_parameters()  
+        try:
+            for step in range(1,7):
+                if step==1:
+                    self.K1109.set_value(1)
+                elif step==2:
+                    pass
+                elif step==3:
+                    while(self.S1109.get_value()!=1 and self.S1110.get_value()!=1):
+                        time.sleep(0.3)
+                    if(self.S1109.get_value()==1 and self.S1110.get_value()==0):
+                        self.K1108.set_value(0)
+                    elif(self.S1109.get_value()==0 and self.S1110.get_value()==1):
+                        self.clear_parameters()
+                        return    
+                    
+                elif step==4:
+                    self.K1110.set_value(1)
+                    self.K1109.set_value(0)
+                    time.sleep(1)
+                elif step==5:
+                    self.K1110.set_value(0)
+                    self.K1108.set_value(1)
+                    if(NC_CODE=="N/A"):
+                        self.K1003.set_value(0)
+                    else:
+                        self.K1003.set_value(1)    
+                elif step==6:
+                    self.SetParameterArray(NC_CODE)
+                
+                time.sleep(1)
+
+        except Exception as e:
+           return {'response':'NOK','error_message':str(e), 'message': f'Failed to run arburg of code {NC_CODE} through server at {self.url}'}
+        
+                             

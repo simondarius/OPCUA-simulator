@@ -35,8 +35,12 @@ def RunInstanceWrapper(message):
             elif(type=='Telsonic'):
             
                 result=server_objects_telsonic[index].simulate(message['Barcode'],message['Errorcode'])
-                print(result)
-                socket.emit('message',json.dumps({'flag':'RunInstanceOK','info':str(result)}))        
+                socket.emit('message',json.dumps({'flag':'RunInstanceOK','info':str(result)}))
+            elif(type=='Arburg'):
+                
+                result=server_objects_arburg[index].simulate(message['NC_CODE'])
+                print("MADE IT HEREEEEEEE")
+                socket.emit('message',json.dumps({'flag':'RunInstanceOK','info':str("ok")}))             
         except Exception as e:
                 app.log_exception(e)
                 socket.emit('message',json.dumps({'flag':'RunInstanceNOK','info':str(e)}))

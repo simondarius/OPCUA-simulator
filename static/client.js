@@ -3,6 +3,7 @@
   var telsonic_table_id=0;
   var adaptronic_table_id=0;
   var tsk_table_id=0;
+  var arburg_table_id=0;
   let currentActiveView=document.getElementById('adaptronic_content')
   socket.on('connect', function() {
     log_info('Connected to server',1);
@@ -128,6 +129,8 @@
              type='Tsk'
            }else if(currentActiveView==document.getElementById('telsonic_content')){
             type='Telsonic'
+          }else if(currentActiveView==document.getElementById('arburg_content')){
+            type='Arburg'
           }
           try{
           const parentDiv = button.parentNode;
@@ -165,12 +168,15 @@
               else if(type=='Telsonic'){
                   const Barcode = cells[1].textContent;
                   const Errorcode = cells[2].textContent;
-               
-                  
-                  
+                
                   log_info(`Sending Barcode ${Barcode} to telsonic server....`)
                   socket.emit('message',JSON.stringify({'flag':'RunInstance','index':divIndex,'type':type,'Barcode':Barcode,'Errorcode':Errorcode}))
-                  }  
+                  }else if(type=='Arburg'){
+                    const NC_CODE = cells[1].textContent;
+              
+                    log_info(`Sending NC_CODE ${NC_CODE} to arburg server....`)
+                    socket.emit('message',JSON.stringify({'flag':'RunInstance','index':divIndex,'type':type,'NC_CODE':NC_CODE}))
+                    }  
             }
           }
         }
@@ -202,7 +208,7 @@
     const submit_button_telsonic = document.getElementById("submit_button_telsonic");
     const random_button_telsonic=document.getElementById("random_button_telsonic");
     const submit_button_arburg = document.getElementById("submit_button_arburg");
-    const random_button_arburg=document.getElementById("random_button_arburg");
+ 
     const header_telsonic=document.getElementById('Telsonic_Header');
     const logoImage=document.getElementById('logoImage')
     submitBtnadaptronic.addEventListener("click", function () {
@@ -268,19 +274,17 @@
     });
     submit_button_arburg.addEventListener("click", function () {
       event.preventDefault();
-      const dataTable=telsonic_content.querySelector(".content_table");
-      const Barcode = telsonic_content.querySelector(".content_create_input1").value;
-      const ErrorCode = telsonic_content.querySelector(".content_create_input2").value;
-      if (Barcode && ErrorCode) {
+      const dataTable=arburg_content.querySelector(".content_table");
+      const NC_CODE = arburg_content.querySelector(".content_create_input1").value;
+      
+      if (NC_CODE) {
         const newRow = dataTable.insertRow();
         const cell1 = newRow.insertCell(0);
         const cell2 = newRow.insertCell(1);
-        const cell3 = newRow.insertCell(2);
-        cell1.innerHTML = telsonic_table_id;
-        cell2.innerHTML = Barcode;
-        cell3.innerHTML = ErrorCode;
-        log_info(`Submited new Barcode ${Barcode} of id ${telsonic_table_id}`);
-        telsonic_table_id+=1;
+        cell1.innerHTML = arburg_table_id;
+        cell2.innerHTML = NC_CODE;
+        log_info(`Submited new arburg of NC_CODE ${NC_CODE}`);
+        arburg_table_id+=1;
         telsonic_content.querySelector(".SFC_CREATION_FORM").reset();
       }
     });
@@ -495,17 +499,7 @@
       const randomOptionIndex = Math.floor(Math.random() * ncCodeSelect.options.length);
       ncCodeSelect.selectedIndex = randomOptionIndex;
     });
-    random_button_arburg.addEventListener("click", function () {
-      event.preventDefault();
-      const sfcInput=telsonic_content.querySelector(".content_create_input1");
-      const ncCodeSelect=telsonic_content.querySelector(".content_create_input2");
-      const randomSFC = Math.floor(Math.random() * 9000000000000) + 1000000000000;
-      sfcInput.value = randomSFC;
-  
-      
-      const randomOptionIndex = Math.floor(Math.random() * ncCodeSelect.options.length);
-      ncCodeSelect.selectedIndex = randomOptionIndex;
-    });
+    
     
   });
   
@@ -594,6 +588,7 @@
   if(type=='Adaptronic')return document.getElementById('adaptronic_content').querySelectorAll(".simulation_instance_select");
   if(type=='Tsk')return document.getElementById('tsk_content').querySelectorAll(".simulation_instance_select");
   if(type=='Telsonic')return document.getElementById('telsonic_content').querySelectorAll(".simulation_instance_select");
+  if(type=='Arburg')return document.getElementById('arburg_content').querySelectorAll(".simulation_instance_select");
 }
 
 // Initial NodeList
@@ -673,6 +668,32 @@ const config_telsonic = { childList: true, subtree: true };
 
 
 observer_telsonic.observe(document.getElementById('telsonic_content').querySelector('.content_table'), config_telsonic);
+
+const observer_arburg = new MutationObserver((mutationsList, observer) => {
+  for (const mutation of mutationsList) {
+    if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
+      
+      mutation.addedNodes.forEach(addedNode => {
+     
+        const id = addedNode.cells[0].textContent;
+        selectElements = updateSelectElements('Arburg');
+       
+        selectElements.forEach(selectElement => {
+          const option = document.createElement("option");
+          option.value = id;
+          option.textContent = id;
+          selectElement.appendChild(option);
+        });
+      });
+    }
+  }
+});
+
+
+const config_arburg= { childList: true, subtree: true };
+
+
+observer_arburg.observe(document.getElementById('arburg_content').querySelector('.content_table'), config_arburg);
 
 async function changeGradientAsync(from,to) {
   const rootElement = document.querySelector('.root');
