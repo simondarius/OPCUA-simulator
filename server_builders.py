@@ -316,19 +316,10 @@ class Arburg(base_server):
         self.f96352.set_writable()
         self.SetPartID = self.Param.add_method(self.namespace, "SetPartID", self.SetPartID_method, [ua.VariantType.String], [ua.VariantType.Boolean])
 
-        variant_array = [
-         ua.Variant(1, ua.VariantType.Int16),
-         ua.Variant(25, ua.VariantType.Int16),
-         ua.Variant(3.67028, ua.VariantType.Float),
-         ua.Variant(1215.05, ua.VariantType.Float),
-         ua.Variant("4109283901234, 12093849501234, 1203948124012", ua.VariantType.String),
-         ua.Variant(0, ua.VariantType.Int16),
-         ua.Variant(0, ua.VariantType.Int16),
-         ua.Variant(0, ua.VariantType.Int16)
-        ] 
+        
 
 
-        dv = ua.DataValue(variant_array)
+        dv = ua.DataValue()
 
         self.var_array=self.Param.add_variable(self.namespace,"f14007-Last",dv)
         self.var_array.set_writable() 
@@ -342,34 +333,50 @@ class Arburg(base_server):
         except:
             return [ua.Variant(False,ua.VariantType.Boolean)]
     def SetParameterArray(self,error_code=0):
-        variant_array=[None,None,None,None,None,None,None,None]
-        if(error_code==0):
-            variant_array[0]=ua.Variant(1, ua.VariantType.Int16)
-            variant_array[7] = ua.Variant(0, ua.VariantType.Int16)
-        else:
-            variant_array[0]=ua.Variant(0, ua.VariantType.Int16)
-            variant_array[7] = ua.Variant(error_code, ua.VariantType.Int16)
-        print('Here1')        
-        variant_array[1] = ua.Variant(self.arburg_counter, ua.VariantType.Int16)
-        print('Here2')  
-        self.arburg_counter+=1
-        variant_array[2] = ua.Variant(random.randint(0,14), ua.VariantType.Int16)
-        print('Here3')  
-        variant_array[3] = ua.Variant(0.01, ua.VariantType.Float)
-        print('Here4')  
-        variant_array[4] = ua.Variant(0.02, ua.VariantType.Float)
-        print('Here5')  
-        variant_array[5] = ua.Variant(self.protocol_counter, ua.VariantType.Int16)
-        print('Here6')  
-        self.protocol_counter+=1
-        variant_array[6] = ua.Variant(self.f96352.get_value(), ua.VariantType.String)
-        print('Here7')  
-        updated_data_value = ua.DataValue(variant_array)
-        print('Here8')
-        print(variant_array)
-        print(updated_data_value)
-        self.var_array.set_value(updated_data_value)
-        print('Here9')
+        
+        
+        try:
+            
+            if(int(error_code)==0):
+                cycle_ok=ua.Variant(1, ua.VariantType.Int16)
+                cycle_error_code = ua.Variant(0, ua.VariantType.Int32)
+            else:
+                cycle_ok=ua.Variant(0, ua.VariantType.Int16)
+                cycle_error_code = ua.Variant(int(error_code), ua.VariantType.Int32)
+            
+            cycle_arburg_counter = ua.Variant(self.arburg_counter, ua.VariantType.Int16)
+        
+            self.arburg_counter+=1
+            cycle_param_1 = ua.Variant(random.uniform(0,5), ua.VariantType.Float)
+         
+            cycle_param_2 = ua.Variant(random.uniform(0,1000), ua.VariantType.Float)
+     
+            cycle_param_3 = ua.Variant(random.uniform(0,2000), ua.VariantType.Float)
+        
+            cycle_protocol_counter = ua.Variant(self.protocol_counter, ua.VariantType.Int16)
+        
+            self.protocol_counter+=1
+            f_value=self.f96352.get_value()
+            
+            cycle_f_value = ua.Variant(f_value, ua.VariantType.String)
+            variant_array=[
+                cycle_ok,
+                cycle_arburg_counter,
+                cycle_param_1,
+                cycle_param_2,
+                cycle_param_3,
+                cycle_protocol_counter,
+                cycle_f_value,
+                cycle_error_code
+            ]
+            
+            dv_1=ua.DataValue(variant_array)
+            self.var_array.set_data_value(dv_1)
+            
+      
+        except Exception as e:
+            print(f'Failed parameter array update, parameters not written in array, with error : {e}')
+       
     def clear_parameters(self):
         self.K1002.set_value(None) 
         self.K1003.set_value(None)
@@ -407,7 +414,7 @@ class Arburg(base_server):
                 elif step==5:
                     self.K1110.set_value(0)
                     self.K1108.set_value(1)
-                    if(NC_CODE=="N/A"):
+                    if(NC_CODE=="0"):
                         self.K1003.set_value(0)
                     else:
                         self.K1003.set_value(1)    

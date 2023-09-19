@@ -39,7 +39,7 @@ def RunInstanceWrapper(message):
             elif(type=='Arburg'):
                 
                 result=server_objects_arburg[index].simulate(message['NC_CODE'])
-                print("MADE IT HEREEEEEEE")
+                
                 socket.emit('message',json.dumps({'flag':'RunInstanceOK','info':str("ok")}))             
         except Exception as e:
                 app.log_exception(e)
