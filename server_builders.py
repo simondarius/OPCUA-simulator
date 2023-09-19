@@ -315,13 +315,288 @@ class Arburg(base_server):
         self.f96352=self.Param.add_variable(self.namespace,"f96352-Value","")
         self.f96352.set_writable()
         self.SetPartID = self.Param.add_method(self.namespace, "SetPartID", self.SetPartID_method, [ua.VariantType.String], [ua.VariantType.Boolean])
-
         
 
-
+        error_codeuri="""
+238810
+239710
+23982
+72570
+202420
+202470
+202520
+202580
+202620
+202670
+202730
+904950
+903220
+903530
+317420
+202760
+207270
+207420
+207570
+207720
+207870
+202340
+177410
+202300
+140870
+232180
+176980
+194750
+235660
+37960
+41400
+40940
+194710
+194560
+41360
+43330
+202672
+194600
+148390
+517460
+61070
+186340
+658390
+323670
+148790
+148220
+183220
+657640
+658690
+207870
+158790
+158880
+158250
+158970
+177550
+140840
+159060
+180100
+189220
+184780
+178540
+187900
+657040
+657190
+181660
+657640
+657790
+658240
+658540
+658690
+207720
+207570
+207420
+207270
+209040
+194560
+194710
+194860
+195050
+195240
+195430
+148590
+150390
+148990
+149190
+149390
+149590
+149790
+149990
+150190
+148390
+157650
+157750
+157850
+157950
+158050
+158150
+158250
+158340
+158430
+158520
+158610
+158700
+158790
+158880
+158970
+159060
+159150
+159240
+159330
+159420
+159510
+232170
+148190
+258210
+613600
+612590
+611580
+610570
+609560
+608550
+607540
+606530
+257680
+257150
+256620
+256090
+255560
+255030
+254500
+194540
+201730
+656590
+654400
+61060
+        """
+        descrieri="""
+Suprainjectare-monitorizare calitate
+Suprainjectare-pornire activa
+Suprainjectare-buton de pornire activ
+Suprainjectare-alarma de manipulare
+Suprainjectare-volum comutare
+Suprainjectare-presiune de injectie max
+Suprainjectare-presiune de comutare
+Suprainjectare-timp de injectie
+Suprainjectare-start injectie
+Suprainjectare-perna de masa/material
+Suprainjectare-timp de dozare
+Suprainjectare-cuplul de dozare
+Suprainjectare-cuplul de dozare mediu
+Suprainjectare-dozare munca
+Suprainjectare-presiunea medie de inj.
+Suprainjectare-timp de injectie variabil
+Suprainjectare-zona 1 incalzire cilindru
+Suprainjectare-zona 2 incalzire cilindru
+N/A
+N/A
+N/A
+Supranjectare-monitorizare pres de inj
+Suprainjectare-eroare presiune integrala
+Suprainjectare-monitorizare timp maxim de injectie 
+Suprainjectare-Timp de ciclu depasit
+Suprainjectare-timp asigurare matrita
+Suprainjectare-valoare de varf melc
+Suprainjectare-debit temperare2mai mica
+Suprainjectare-eroare cursa matrita 
+Suprainjectare- eroare rupere cablu
+Suprainjectare-grila protectie neinchis
+Suprainj-Intrerupere bariera optica
+Suprainjectare-eroare T856I
+Suprainjectare-disp.temp.matrita mica
+Suprainjectare-capac protec.vert deschis
+Suprainjectare-monitorizare poz.matrita
+Suprainj-perna subst.val.reala tol.mica
+Suprainjectare-val.debit tol prea mica
+Suprainjectare-zona2 incalzire matrita
+Suprainjectare-timp pana validare melc
+Suprainjectare-oprire de urgenta 3
+Suprainjectare-Valoare de varf cav.1.6
+Suprainjectare-Valoare de varf cav.1.6.
+Suprainjectare-Timp injectie max depasit
+Suprainjectare-Circ incalzire matrita 4
+Suprainjectare-Tol Circ incalzire mat 1
+Suprainjectare-Valoare de varf cav.1.4
+Suprainjectare-Valoare de varf cav.3.3
+Suprainjectare-Valoare de varf cav.1.8
+Suprainjectare-Zona incalzire cilindru 5
+Suprainjectare-Disp canal cald zona 13
+Suprainjectare-Disp canal cald zona 14
+Suprainjectare-Disp canal cald zona 7
+Suprainjectare-Disp canal cald zona 15
+Suprainjectare-Valoare de varf surub
+Suprainjectare-Timp de ciclu
+Suprainjectare-Disp canal cald zona 16
+Suprainjectare-Valoare de varf cav. 1.2
+Suprainjectare-Selectie intrare/iesire
+Suprainjectare-Valoare de varf cav. 1.5
+Suprainjectare-Valoare de varf cav. 1.1
+Suprainjectare-Valoare de varf cav. 1.7
+Suprainjectare-Valoare de varf cav. 1.1.
+Suprainjectare-Valoare de varf cav. 1.2.
+Suprainjectare-Valoare de varf cav. 1.3
+Suprainjectare-Valoare de varf cav. 1.3.
+Suprainjectare-Valoare de varf cav. 1.4.
+Suprainjectare-Valoare de varf cav. 1.5.
+Suprainjectare-Valoare de varf cav. 1.7.
+Suprainjectare-Valoare de varf cav. 1.8.
+Suprainjectare-Zona incalzire cilindru 4
+Suprainjectare-Zona incalzire cilindru 3
+Suprainjectare-Zona incalzire cilindru 2
+Suprainjectare-Zona incalzire cilindru 1
+Suprainjectare-Zona incalzire feeder
+Suprainjectare-Dispoz temperare matrita 1
+Suprainjectare-Dispoz temperare matrita 2
+Suprainjectare-Dispoz temperare matrita 3
+Suprainjectare-Dispoz temperare matrita 4
+Suprainjectare-Dispoz temperare matrita 5
+Suprainjectare-Dispoz temperare matrita 6
+Suprainjectare-Circ incalzire matrita 3
+Suprainjectare-Circ incalzire matrita 12
+Suprainjectare-Circ incalzire matrita 5
+Suprainjectare-Circ incalzire matrita 6
+Suprainjectare-Circ incalzire matrita 7
+Suprainjectare-Circ incalzire matrita 8
+Suprainjectare-Circ incalzire matrita 9
+Suprainjectare-Circ incalzire matrita 10
+Suprainjectare-Circ incalzire matrita 11
+Suprainjectare-Circ incalzire matrita 2
+Suprainjectare-Disp canal cald zona 1
+Suprainjectare-Disp canal cald zona 2
+Suprainjectare-Disp canal cald zona 3
+Suprainjectare-Disp canal cald zona 4
+Suprainjectare-Disp canal cald zona 5
+Suprainjectare-Disp canal cald zona 6
+Suprainjectare-Disp canal cald zona 7
+Suprainjectare-Disp canal cald zona 8
+Suprainjectare-Disp canal cald zona 9
+Suprainjectare-Disp canal cald zona 10
+Suprainjectare-Disp canal cald zona 11
+Suprainjectare-Disp canal cald zona 12
+Suprainjectare-Disp canal cald zona 16
+Suprainjectare-Disp canal cald zona 17
+Suprainjectare-Disp canal cald zona 18
+Suprainjectare-Disp canal cald zona 19
+Suprainjectare-Disp canal cald zona 20
+Suprainjectare-Disp canal cald zona 21
+Suprainjectare-Disp canal cald zona 22
+Suprainjectare-Disp canal cald zona 23
+Suprainjectare-Disp canal cald zona 24
+Suprainjectare-Monitorizare timp protectie matrita
+Suprainjectare-Circ incalzire matrita 1
+Overmolding-Mould temp control dev 1
+None
+None
+None
+None
+None
+None
+None
+None
+None
+None
+None
+None
+None
+None
+None
+None
+Suprainjectare-screw volume actual value
+        """
+        
         dv = ua.DataValue()
+        lines1 = error_codeuri.strip().split('\n')
+        lines2 = descrieri.strip().split('\n')
 
+        self.NC_DESCRIPTION = {int(key): value for key, value in zip(lines1, lines2)}
+        
         self.var_array=self.Param.add_variable(self.namespace,"f14007-Last",dv)
+        self.f2072=self.Param.add_variable(self.namespace,"f2072","")
         self.var_array.set_writable() 
         self.clear_parameters()
         self.server_thread.start()
@@ -340,9 +615,14 @@ class Arburg(base_server):
             if(int(error_code)==0):
                 cycle_ok=ua.Variant(1, ua.VariantType.Int16)
                 cycle_error_code = ua.Variant(0, ua.VariantType.Int32)
+                self.f2072.set_value('')
             else:
                 cycle_ok=ua.Variant(0, ua.VariantType.Int16)
                 cycle_error_code = ua.Variant(int(error_code), ua.VariantType.Int32)
+                try:
+                    self.f2072.set_value(self.NC_DESCRIPTION[int(error_code)])
+                except:
+                    self.f2072.set_value('Error description not found')   
             
             cycle_arburg_counter = ua.Variant(self.arburg_counter, ua.VariantType.Int16)
         
@@ -397,14 +677,15 @@ class Arburg(base_server):
                 if step==1:
                     self.K1109.set_value(1)
                 elif step==2:
-                    pass
+                    self.K1108.set_value(0)
                 elif step==3:
                     while(self.S1109.get_value()!=1 and self.S1110.get_value()!=1):
                         time.sleep(0.3)
                     if(self.S1109.get_value()==1 and self.S1110.get_value()==0):
-                        self.K1108.set_value(0)
+                        pass
                     elif(self.S1109.get_value()==0 and self.S1110.get_value()==1):
-                        self.clear_parameters()
+                        self.K1003.set_value(1)
+                        self.f2072.set_value('Intreruperea ciclului de injectare')
                         return    
                     
                 elif step==4:
