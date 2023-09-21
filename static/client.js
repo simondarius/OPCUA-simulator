@@ -5,6 +5,10 @@
   var tsk_table_id=0;
   var arburg_table_id=0;
   let currentActiveView=document.getElementById('adaptronic_content')
+  let SubmitIntervalAdaptronic
+  let SubmitIntervalTsk
+  let SubmitIntervalTelsonic
+  let SubmitIntervalArburg
   socket.on('connect', function() {
     log_info('Connected to server',1);
   });
@@ -136,11 +140,56 @@
           const parentDiv = button.parentNode;
           const selectField = parentDiv.querySelector('.simulation_instance_select');
           const selectedValue = selectField.value;
-          
           const contentTable = currentActiveView.querySelector('.content_table');
           const rows = contentTable.getElementsByTagName('tr');
           const containerDiv = currentActiveView.querySelector(".simulation_instance_container");
           const divIndex = Array.from(containerDiv.children).indexOf(parentDiv);
+          if(selectedValue=='All'){
+            let to_emit=[]
+            for (let i = 1; i < rows.length; i++) { 
+              const row = rows[i];
+              const cells = row.getElementsByTagName('td');
+              
+           
+                if(type=='Adaptronic'){
+                const SFC = cells[1].textContent;
+                const NC_CODE = cells[2].textContent;
+             
+                const Material_Number = cells[3].textContent;
+                
+                log_info(`Sending SFC ${SFC} to adaptronic server....`)
+                to_emit.push(JSON.stringify({'flag':'RunInstance','index':divIndex,'type':type,'SFC':SFC,'NC_CODE':NC_CODE,'MatNumber':Material_Number}))
+                }
+                else if(type=='Tsk'){
+                  const SFC = cells[1].textContent;
+                  const NC_CODE = cells[2].textContent;
+               
+                  
+                  
+                  log_info(`Sending SFC ${SFC} to tsk server....`)
+                  to_emit.push(JSON.stringify({'flag':'RunInstance','index':divIndex,'type':type,'SFC':SFC,'NC_CODE':NC_CODE}))
+                  
+                  }
+                else if(type=='Telsonic'){
+                    const Barcode = cells[1].textContent;
+                    const Errorcode = cells[2].textContent;
+                  
+                    log_info(`Sending Barcode ${Barcode} to telsonic server....`)
+                    to_emit.push(JSON.stringify({'flag':'RunInstance','index':divIndex,'type':type,'Barcode':Barcode,'Errorcode':Errorcode}))
+                    
+                    }else if(type=='Arburg'){
+                      const NC_CODE = cells[1].textContent;
+                
+                      log_info(`Sending NC_CODE ${NC_CODE} to arburg server....`)
+                      to_emit.push(JSON.stringify({'flag':'RunInstance','index':divIndex,'type':type,'NC_CODE':NC_CODE}))
+                      
+                }  
+              
+            }
+             socket.emit('message_array',to_emit)
+             return
+          }
+          
     
           for (let i = 1; i < rows.length; i++) { 
             const row = rows[i];
@@ -208,7 +257,7 @@
     const submit_button_telsonic = document.getElementById("submit_button_telsonic");
     const random_button_telsonic=document.getElementById("random_button_telsonic");
     const submit_button_arburg = document.getElementById("submit_button_arburg");
- 
+    const random_button_arburg= document.getElementById('random_button_arburg');
     const header_telsonic=document.getElementById('Telsonic_Header');
     const logoImage=document.getElementById('logoImage')
     submitBtnadaptronic.addEventListener("click", function () {
@@ -236,6 +285,17 @@
         adaptronic_content.querySelector(".content_create_input4").value=MAT_NUMBER;
       }
     });
+    submitBtnadaptronic.addEventListener('mousedown',function(){
+      event.preventDefault();
+      SubmitIntervalAdaptronic=setInterval(()=>{
+        randomButtonadaptronic.click()
+        submitBtnadaptronic.click()
+      },250)
+    })
+    submitBtnadaptronic.addEventListener("mouseup", function () {
+      event.preventDefault();
+      clearInterval(SubmitIntervalAdaptronic);
+    });
     submitBtntsk.addEventListener("click", function () {
       event.preventDefault();
       const dataTable=tsk_content.querySelector(".content_table");
@@ -254,6 +314,17 @@
         tsk_content.querySelector(".SFC_CREATION_FORM").reset();
       }
     });
+    submitBtntsk.addEventListener('mousedown',function(){
+      event.preventDefault();
+      SubmitIntervalTsk=setInterval(()=>{
+        randomButtontsk.click()
+        submitBtntsk.click()
+      },250)
+    })
+    submitBtntsk.addEventListener("mouseup", function () {
+      event.preventDefault();
+      clearInterval(SubmitIntervalTsk);
+    });
     submit_button_telsonic.addEventListener("click", function () {
       event.preventDefault();
       const dataTable=telsonic_content.querySelector(".content_table");
@@ -269,8 +340,19 @@
         cell3.innerHTML = ErrorCode;
         log_info(`Submited new Barcode ${Barcode} of id ${telsonic_table_id}`);
         telsonic_table_id+=1;
-        telsonic_content.querySelector(".SFC_CREATION_FORM").reset();
+        
       }
+    });
+    submit_button_telsonic.addEventListener('mousedown',function(){
+      event.preventDefault();
+      SubmitIntervalTelsonic=setInterval(()=>{
+        random_button_telsonic.click()
+        submit_button_telsonic.click()
+      },250)
+    })
+    submit_button_telsonic.addEventListener("mouseup", function () {
+      event.preventDefault();
+      clearInterval(SubmitIntervalTelsonic);
     });
     submit_button_arburg.addEventListener("click", function () {
       event.preventDefault();
@@ -287,6 +369,17 @@
         arburg_table_id+=1;
         telsonic_content.querySelector(".SFC_CREATION_FORM").reset();
       }
+    });
+    submit_button_arburg.addEventListener('mousedown',function(){
+      event.preventDefault();
+      SubmitIntervalArburg=setInterval(()=>{
+        random_button_arburg.click()
+        submit_button_arburg.click()
+      },250)
+    })
+    submit_button_arburg.addEventListener("mouseup", function () {
+      event.preventDefault();
+      clearInterval(SubmitIntervalArburg);
     });
     header_tsk.addEventListener('click',function(){
       event.preventDefault();
@@ -499,6 +592,12 @@
       const randomOptionIndex = Math.floor(Math.random() * ncCodeSelect.options.length);
       ncCodeSelect.selectedIndex = randomOptionIndex;
     });
+    random_button_arburg.addEventListener("click", function () {
+      event.preventDefault();
+      const ErrorCodeSelect=arburg_content.querySelector(".content_create_input1");  
+      const randomErrorIndex = Math.floor(Math.random() * ErrorCodeSelect.options.length);
+      ErrorCodeSelect.selectedIndex = randomErrorIndex;
+    });
     
     
   });
@@ -523,7 +622,10 @@
     select.id = "simulation_instance_select";
     const tableElement = target.querySelector(".content_table");
 
-
+    const option_all = document.createElement("option");
+    option_all.value = 'All';
+    option_all.textContent = 'All';
+    select.appendChild(option_all); 
      for (const row of tableElement.rows) {
 
      const id = row.cells[0].textContent;
@@ -651,7 +753,7 @@ const observer_telsonic = new MutationObserver((mutationsList, observer) => {
      
         const id = addedNode.cells[0].textContent;
         selectElements = updateSelectElements('Telsonic');
-       
+        
         selectElements.forEach(selectElement => {
           const option = document.createElement("option");
           option.value = id;
@@ -672,12 +774,13 @@ observer_telsonic.observe(document.getElementById('telsonic_content').querySelec
 const observer_arburg = new MutationObserver((mutationsList, observer) => {
   for (const mutation of mutationsList) {
     if (mutation.type === "childList" && mutation.addedNodes.length > 0) {
+      selectElements = updateSelectElements('Arburg');
       
       mutation.addedNodes.forEach(addedNode => {
      
         const id = addedNode.cells[0].textContent;
-        selectElements = updateSelectElements('Arburg');
-       
+        
+         
         selectElements.forEach(selectElement => {
           const option = document.createElement("option");
           option.value = id;

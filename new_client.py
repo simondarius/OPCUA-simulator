@@ -18,32 +18,63 @@ socket = SocketIO(app, cors_allowed_origins="*",async_mode='gevent')
 logging.basicConfig(level=logging.WARNING, handlers=[logging.StreamHandler()])
 app.logger.addHandler(logging.StreamHandler())
 
-def RunInstanceWrapper(message):
-        try:
-            index=int(message['index'])
-            type=message['type']
-            app.logger.warning(f'Running instance at server of index, type is {type} : {index}')
-            assert(type in ['Adaptronic','Tsk','Telsonic','Arburg'])
-            if(type=='Adaptronic'):
-                result=server_objects_adaptronic[index].simulate(message['SFC'],message['MatNumber'],message['NC_CODE'])
+def RunInstanceWrapper(message,is_array=False):
+        if not is_array:
+            try:
+                index=int(message['index'])
+                type=message['type']
+                app.logger.warning(f'Running instance at server of index, type is {type} : {index}')
+                assert(type in ['Adaptronic','Tsk','Telsonic','Arburg'])
+                if(type=='Adaptronic'):
+                    result=server_objects_adaptronic[index].simulate(message['SFC'],message['MatNumber'],message['NC_CODE'])
                
-                socket.emit('message',json.dumps({'flag':'RunInstanceOK','info':str(result)}))
-            elif(type=='Tsk'):
-                result=server_objects_tsk[index].simulate(message['SFC'],message['NC_CODE'])
+                    socket.emit('message',json.dumps({'flag':'RunInstanceOK','info':str(result)}))
+                elif(type=='Tsk'):
+                    result=server_objects_tsk[index].simulate(message['SFC'],message['NC_CODE'])
                
-                socket.emit('message',json.dumps({'flag':'RunInstanceOK','info':str(result)}))
-            elif(type=='Telsonic'):
+                    socket.emit('message',json.dumps({'flag':'RunInstanceOK','info':str(result)}))
+                elif(type=='Telsonic'):
             
-                result=server_objects_telsonic[index].simulate(message['Barcode'],message['Errorcode'])
-                socket.emit('message',json.dumps({'flag':'RunInstanceOK','info':str(result)}))
-            elif(type=='Arburg'):
+                    result=server_objects_telsonic[index].simulate(message['Barcode'],message['Errorcode'])
+                    socket.emit('message',json.dumps({'flag':'RunInstanceOK','info':str(result)}))
+                elif(type=='Arburg'):
                 
-                result=server_objects_arburg[index].simulate(message['NC_CODE'])
+                    result=server_objects_arburg[index].simulate(message['NC_CODE'])
                 
-                socket.emit('message',json.dumps({'flag':'RunInstanceOK','info':str("ok")}))             
-        except Exception as e:
-                app.log_exception(e)
-                socket.emit('message',json.dumps({'flag':'RunInstanceNOK','info':str(e)}))
+                    socket.emit('message',json.dumps({'flag':'RunInstanceOK','info':str("ok")}))             
+            except Exception as e:
+                    app.log_exception(e)
+                    socket.emit('message',json.dumps({'flag':'RunInstanceNOK','info':str(e)}))
+        else:
+             for json_str in message:
+                try:
+                     json_obj=json.loads(json_str)
+                     index=int(json_obj['index'])
+                     type=json_obj['type']
+                     app.logger.warning(f'Running instance at server of index, type is {type} : {index}')
+                     assert(type in ['Adaptronic','Tsk','Telsonic','Arburg'])
+                     if(type=='Adaptronic'):
+                        result=server_objects_adaptronic[index].simulate(json_obj['SFC'],json_obj['MatNumber'],json_obj['NC_CODE'])
+               
+                        socket.emit('message',json.dumps({'flag':'RunInstanceOK','info':str(result)}))
+                     elif(type=='Tsk'):
+                        result=server_objects_tsk[index].simulate(json_obj['SFC'],json_obj['NC_CODE'])
+               
+                        socket.emit('message',json.dumps({'flag':'RunInstanceOK','info':str(result)}))
+                     elif(type=='Telsonic'):
+            
+                        result=server_objects_telsonic[index].simulate(json_obj['Barcode'],json_obj['Errorcode'])
+                        socket.emit('message',json.dumps({'flag':'RunInstanceOK','info':str(result)}))
+                     elif(type=='Arburg'):
+                
+                        result=server_objects_arburg[index].simulate(json_obj['NC_CODE'])
+                        socket.emit('message',json.dumps({'flag':'RunInstanceOK','info':str("ok")}))
+                        
+                except Exception as e:
+                     app.log_exception(e)
+                     socket.emit('message',json.dumps({'flag':'RunInstanceNOK','info':str(e)})) 
+                      
+                        
 RunningInstances=list()
 @app.route('/')
 def index():
@@ -138,5 +169,8 @@ def handle_request(data):
         thread=threading.Thread(target=RunInstanceWrapper,args=(message,))
         thread.start()
                                 
-
+@socket.on('message_array')
+def handle_message_array(data):
+        thread=threading.Thread(target=RunInstanceWrapper,args=(data,True))
+        thread.start()
 socket.run(app)
